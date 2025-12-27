@@ -1,6 +1,17 @@
 import CommandCenter from "@/components/workspaces/CommandCenter";
 
-export default function Workspace() {
+const metricCardStyle: React.CSSProperties = {
+  padding: "0.85rem",
+  borderRadius: "0.75rem",
+  border: "1px solid rgba(148, 163, 184, 0.14)",
+  background: "rgba(15, 23, 42, 0.7)",
+};
+
+interface WorkspaceProps {
+  activeContext: ActiveContextItem;
+}
+
+export default function Workspace({ activeContext }: WorkspaceProps) {
   return (
     <main
       style={{
