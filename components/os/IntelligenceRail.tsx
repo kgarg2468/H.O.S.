@@ -24,7 +24,22 @@ const cardStyle: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(2, 6, 23, 0.4)",
 };
 
-export default function IntelligenceRail() {
+export type IntelligenceNotification = {
+  id: string;
+  title: string;
+  message: string;
+  timestamp: string;
+};
+
+type IntelligenceRailProps = {
+  activeContext: string;
+  notifications: IntelligenceNotification[];
+};
+
+export default function IntelligenceRail({
+  activeContext,
+  notifications,
+}: IntelligenceRailProps) {
   return (
     <aside
       style={{
@@ -43,7 +58,41 @@ export default function IntelligenceRail() {
         <div style={{ color: "#7c879a", marginTop: "0.4rem" }}>
           Proactive guidance and signals
         </div>
+        <div style={{ color: "#5b6b82", marginTop: "0.6rem" }}>
+          Active context · <span style={{ color: "#e2e8f0" }}>{activeContext}</span>
+        </div>
       </div>
+
+      {notifications.length > 0 && (
+        <div
+          style={{
+            padding: "0.9rem",
+            borderRadius: "0.9rem",
+            background: "rgba(59, 130, 246, 0.12)",
+            border: "1px solid rgba(59, 130, 246, 0.35)",
+            boxShadow: "0 16px 30px rgba(15, 23, 42, 0.35)",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.4rem",
+          }}
+        >
+          <div style={{ fontSize: "0.75rem", letterSpacing: "0.08em" }}>
+            HIGH-SIGNAL ALERT
+          </div>
+          {notifications.map((notification) => (
+            <div key={notification.id}>
+              <div style={{ fontWeight: 600 }}>{notification.title}</div>
+              <div style={{ color: "#cbd5f5", fontSize: "0.9rem" }}>
+                {notification.message}
+              </div>
+              <div style={{ color: "#94a3b8", fontSize: "0.75rem" }}>
+                {notification.timestamp}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
       {cards.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
