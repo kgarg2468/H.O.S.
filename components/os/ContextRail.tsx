@@ -1,20 +1,5 @@
 import type React from "react";
-import type { RailSection } from "@/lib/types";
-
-const sections: RailSection[] = [
-  {
-    title: "System",
-    items: ["Kernel", "Processes", "Memory", "Storage"],
-  },
-  {
-    title: "Environment",
-    items: ["Networks", "Sensors", "Agents", "Policies"],
-  },
-  {
-    title: "Sessions",
-    items: ["Operator", "Diagnostics", "Playback"],
-  },
-];
+import type { ActiveContextItem, RailSection } from "@/lib/types";
 
 const headerStyle: React.CSSProperties = {
   fontSize: "0.85rem",
@@ -33,7 +18,29 @@ const itemStyle: React.CSSProperties = {
   fontSize: "0.9rem",
 };
 
-export default function ContextRail() {
+const itemMetaStyle: React.CSSProperties = {
+  fontSize: "0.75rem",
+  color: "#94a3b8",
+  marginTop: "0.35rem",
+};
+
+const activeItemStyle: React.CSSProperties = {
+  border: "1px solid rgba(59, 130, 246, 0.55)",
+  background: "rgba(59, 130, 246, 0.15)",
+  color: "#e0f2fe",
+};
+
+interface ContextRailProps {
+  sections: RailSection[];
+  activeItemId: ActiveContextItem["id"];
+  onSelect: (item: ActiveContextItem) => void;
+}
+
+export default function ContextRail({
+  sections,
+  activeItemId,
+  onSelect,
+}: ContextRailProps) {
   return (
     <aside
       style={{
@@ -57,9 +64,21 @@ export default function ContextRail() {
         <div key={section.title}>
           <div style={headerStyle}>{section.title}</div>
           {section.items.map((item) => (
-            <div key={item} style={itemStyle}>
-              {item}
-            </div>
+            <button
+              key={item.id}
+              type="button"
+              onClick={() => onSelect(item)}
+              style={{
+                ...itemStyle,
+                ...(item.id === activeItemId ? activeItemStyle : null),
+                textAlign: "left",
+                cursor: "pointer",
+                width: "100%",
+              }}
+            >
+              <div style={{ fontWeight: 600 }}>{item.title}</div>
+              <div style={itemMetaStyle}>{item.status}</div>
+            </button>
           ))}
         </div>
       ))}

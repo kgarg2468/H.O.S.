@@ -1,4 +1,5 @@
 import type React from "react";
+import type { ActiveContextItem } from "@/lib/types";
 
 const statusPillStyle: React.CSSProperties = {
   display: "inline-flex",
@@ -19,7 +20,18 @@ const panelStyle: React.CSSProperties = {
   padding: "1.5rem",
 };
 
-export default function Workspace() {
+const metricCardStyle: React.CSSProperties = {
+  padding: "0.85rem",
+  borderRadius: "0.75rem",
+  border: "1px solid rgba(148, 163, 184, 0.14)",
+  background: "rgba(15, 23, 42, 0.7)",
+};
+
+interface WorkspaceProps {
+  activeContext: ActiveContextItem;
+}
+
+export default function Workspace({ activeContext }: WorkspaceProps) {
   return (
     <main
       style={{
@@ -40,10 +52,10 @@ export default function Workspace() {
       >
         <div>
           <div style={{ fontSize: "1.5rem", fontWeight: 600 }}>
-            Workspace
+            {activeContext.title}
           </div>
           <div style={{ color: "#94a3b8", marginTop: "0.35rem" }}>
-            Central orchestration surface
+            {activeContext.description}
           </div>
         </div>
         <div style={statusPillStyle}>
@@ -63,31 +75,28 @@ export default function Workspace() {
       <section
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
           gap: "1rem",
         }}
       >
-        {["Mission Brief", "Active Workflows", "Resource Queue"].map(
-          (title) => (
-            <div key={title} style={panelStyle}>
-              <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
-                {title}
-              </div>
-              <p style={{ color: "#94a3b8", lineHeight: 1.6 }}>
-                Curated overview of system state for rapid control and handoff.
-              </p>
+        {activeContext.metrics.map((metric) => (
+          <div key={metric.label} style={metricCardStyle}>
+            <div style={{ fontSize: "0.75rem", color: "#94a3b8" }}>
+              {metric.label}
             </div>
-          )
-        )}
+            <div style={{ fontSize: "1.1rem", fontWeight: 600 }}>
+              {metric.value}
+            </div>
+          </div>
+        ))}
       </section>
 
       <section style={panelStyle}>
         <div style={{ fontWeight: 600, marginBottom: "0.5rem" }}>
-          Command Surface
+          Active Focus
         </div>
         <p style={{ color: "#94a3b8", lineHeight: 1.7 }}>
-          Issue directives, monitor feedback loops, and keep the operating space in
-          focus. This pane stays persistent as the OS shell loads.
+          {activeContext.status}
         </p>
       </section>
     </main>
