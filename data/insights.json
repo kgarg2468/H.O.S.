@@ -1,0 +1,50 @@
+[
+  {
+    "id": "i-5001",
+    "buyer_id": "b-1001",
+    "fit_score": 92,
+    "top_properties": ["p-2001", "p-2003", "p-2008"],
+    "rationale": "Prioritizes townhome/single-family with garage and office space near walkable amenities.",
+    "next_actions": ["Negotiate inspection credit", "Confirm lender appraisal timeline"]
+  },
+  {
+    "id": "i-5002",
+    "buyer_id": "b-1002",
+    "fit_score": 88,
+    "top_properties": ["p-2006", "p-2002"],
+    "rationale": "Condo-focused with building amenities and transit proximity; closed SLU unit meets requirements.",
+    "next_actions": ["Schedule final walkthrough recap", "Share HOA move-in packet"]
+  },
+  {
+    "id": "i-5003",
+    "buyer_id": "b-1003",
+    "fit_score": 84,
+    "top_properties": ["p-2007", "p-2003"],
+    "rationale": "Needs four bedrooms and yard; Phinney Ridge listing best matches space and commute.",
+    "next_actions": ["Arrange second tour", "Pull school district comparisons"]
+  },
+  {
+    "id": "i-5004",
+    "buyer_id": "b-1004",
+    "fit_score": 79,
+    "top_properties": ["p-2005", "p-2008"],
+    "rationale": "Starter-home focus with updated kitchen and yard; West Seattle home aligns with budget ceiling.",
+    "next_actions": ["Respond to seller counter", "Coordinate inspection window"]
+  },
+  {
+    "id": "i-5005",
+    "buyer_id": "b-1005",
+    "fit_score": 86,
+    "top_properties": ["p-2004", "p-2002"],
+    "rationale": "Downsizing to low-maintenance condo with elevator and trail access; Green Lake unit is best fit.",
+    "next_actions": ["Draft offer strategy", "Verify HOA reserves"]
+  },
+  {
+    "id": "i-5006",
+    "buyer_id": "b-1006",
+    "fit_score": 81,
+    "top_properties": ["p-2003", "p-2001"],
+    "rationale": "Investor seeking rental potential and parking; Ballard home offers basement for ADU potential.",
+    "next_actions": ["Prepare rental income worksheet", "Confirm zoning allowances"]
+  }
+]
