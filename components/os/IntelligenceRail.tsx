@@ -1,20 +1,5 @@
 import type React from "react";
-import type { IntelligenceCard } from "@/lib/types";
-
-const cards: IntelligenceCard[] = [
-  {
-    title: "Signal Sweep",
-    description: "Watch incoming telemetry and prioritize action items.",
-  },
-  {
-    title: "Recommendations",
-    description: "Suggested next moves based on active context signals.",
-  },
-  {
-    title: "Insights",
-    description: "Summaries distilled from logs and operator guidance.",
-  },
-];
+import type { ActiveContextItem } from "@/lib/types";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -24,7 +9,13 @@ const cardStyle: React.CSSProperties = {
   boxShadow: "0 12px 40px rgba(2, 6, 23, 0.4)",
 };
 
-export default function IntelligenceRail() {
+interface IntelligenceRailProps {
+  activeContext: ActiveContextItem;
+}
+
+export default function IntelligenceRail({
+  activeContext,
+}: IntelligenceRailProps) {
   return (
     <aside
       style={{
@@ -41,10 +32,10 @@ export default function IntelligenceRail() {
           Intelligence Rail
         </div>
         <div style={{ color: "#7c879a", marginTop: "0.4rem" }}>
-          Proactive guidance and signals
+          Signals for {activeContext.title}
         </div>
       </div>
-      {cards.map((card) => (
+      {activeContext.intelligence.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}
