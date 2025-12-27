@@ -1,9 +1,11 @@
-export type RailSection = {
-  title: string;
-  items: string[];
-};
+export type JsonPrimitive = string | number | boolean | null;
 
-export type IntelligenceCard = {
-  title: string;
-  description: string;
-};
+export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+
+export interface JsonObject {
+  [key: string]: JsonValue;
+}
+
+export type JsonArray = JsonValue[];
+
+export type MockData<T extends JsonValue = JsonValue> = T;

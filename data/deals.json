@@ -1,0 +1,72 @@
+[
+  {
+    "id": "d-3001",
+    "buyer_id": "b-1001",
+    "property_id": "p-2001",
+    "stage": "inspection",
+    "list_price": 635000,
+    "offer_price": 640000,
+    "financing": "conventional",
+    "contingencies": ["inspection", "financing"],
+    "offer_date": "2024-10-06",
+    "close_target": "2024-11-08",
+    "agent": "Renee Keller",
+    "status": "under_contract"
+  },
+  {
+    "id": "d-3002",
+    "buyer_id": "b-1002",
+    "property_id": "p-2006",
+    "stage": "closed",
+    "list_price": 455000,
+    "offer_price": 450000,
+    "financing": "conventional",
+    "contingencies": ["inspection"],
+    "offer_date": "2024-09-05",
+    "close_target": "2024-10-04",
+    "agent": "Renee Keller",
+    "status": "closed"
+  },
+  {
+    "id": "d-3003",
+    "buyer_id": "b-1004",
+    "property_id": "p-2005",
+    "stage": "negotiation",
+    "list_price": 575000,
+    "offer_price": 565000,
+    "financing": "fha",
+    "contingencies": ["inspection", "appraisal"],
+    "offer_date": "2024-10-08",
+    "close_target": "2024-11-15",
+    "agent": "Sam Patel",
+    "status": "negotiating"
+  },
+  {
+    "id": "d-3004",
+    "buyer_id": "b-1003",
+    "property_id": "p-2007",
+    "stage": "touring",
+    "list_price": 845000,
+    "offer_price": null,
+    "financing": "conventional",
+    "contingencies": [],
+    "offer_date": null,
+    "close_target": null,
+    "agent": "Nina Park",
+    "status": "touring"
+  },
+  {
+    "id": "d-3005",
+    "buyer_id": "b-1006",
+    "property_id": "p-2003",
+    "stage": "showing",
+    "list_price": 725000,
+    "offer_price": null,
+    "financing": "conventional",
+    "contingencies": [],
+    "offer_date": null,
+    "close_target": null,
+    "agent": "Sam Patel",
+    "status": "showing"
+  }
+]
