@@ -1,0 +1,122 @@
+[
+  {
+    "id": "e-4001",
+    "date": "2024-10-01",
+    "type": "showing",
+    "buyer_id": "b-1001",
+    "property_id": "p-2001",
+    "deal_id": "d-3001",
+    "notes": "Maya loved the roof deck and office nook.",
+    "outcome": "requested disclosures"
+  },
+  {
+    "id": "e-4002",
+    "date": "2024-10-02",
+    "type": "showing",
+    "buyer_id": "b-1006",
+    "property_id": "p-2003",
+    "deal_id": "d-3005",
+    "notes": "Caleb evaluated basement for ADU potential.",
+    "outcome": "considering offer"
+  },
+  {
+    "id": "e-4003",
+    "date": "2024-10-03",
+    "type": "open_house",
+    "buyer_id": "b-1005",
+    "property_id": "p-2004",
+    "deal_id": null,
+    "notes": "Sofia noted elevator access and lake trail proximity.",
+    "outcome": "shortlisted"
+  },
+  {
+    "id": "e-4004",
+    "date": "2024-10-04",
+    "type": "offer_submitted",
+    "buyer_id": "b-1001",
+    "property_id": "p-2001",
+    "deal_id": "d-3001",
+    "notes": "Offer slightly above list to stay competitive.",
+    "outcome": "accepted"
+  },
+  {
+    "id": "e-4005",
+    "date": "2024-10-04",
+    "type": "closing",
+    "buyer_id": "b-1002",
+    "property_id": "p-2006",
+    "deal_id": "d-3002",
+    "notes": "Condo closed on time; keys delivered.",
+    "outcome": "closed"
+  },
+  {
+    "id": "e-4006",
+    "date": "2024-10-05",
+    "type": "showing",
+    "buyer_id": "b-1004",
+    "property_id": "p-2005",
+    "deal_id": "d-3003",
+    "notes": "Liam liked the updated kitchen and backyard.",
+    "outcome": "requested comps"
+  },
+  {
+    "id": "e-4007",
+    "date": "2024-10-06",
+    "type": "inspection",
+    "buyer_id": "b-1001",
+    "property_id": "p-2001",
+    "deal_id": "d-3001",
+    "notes": "Minor roof flashing repair needed.",
+    "outcome": "credit requested"
+  },
+  {
+    "id": "e-4008",
+    "date": "2024-10-07",
+    "type": "showing",
+    "buyer_id": "b-1003",
+    "property_id": "p-2007",
+    "deal_id": "d-3004",
+    "notes": "Priya noted finished basement and backyard size.",
+    "outcome": "second tour scheduled"
+  },
+  {
+    "id": "e-4009",
+    "date": "2024-10-08",
+    "type": "offer_submitted",
+    "buyer_id": "b-1004",
+    "property_id": "p-2005",
+    "deal_id": "d-3003",
+    "notes": "FHA offer with appraisal contingency.",
+    "outcome": "countered"
+  },
+  {
+    "id": "e-4010",
+    "date": "2024-10-09",
+    "type": "open_house",
+    "buyer_id": "b-1002",
+    "property_id": "p-2002",
+    "deal_id": null,
+    "notes": "Jordan toured as backup option for investment.",
+    "outcome": "not pursuing"
+  },
+  {
+    "id": "e-4011",
+    "date": "2024-10-10",
+    "type": "showing",
+    "buyer_id": "b-1005",
+    "property_id": "p-2004",
+    "deal_id": null,
+    "notes": "Follow-up private tour; elevator and quiet floor.",
+    "outcome": "considering offer"
+  },
+  {
+    "id": "e-4012",
+    "date": "2024-10-11",
+    "type": "showing",
+    "buyer_id": "b-1006",
+    "property_id": "p-2003",
+    "deal_id": "d-3005",
+    "notes": "Checked garage conversion options.",
+    "outcome": "requested rental analysis"
+  }
+]
