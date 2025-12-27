@@ -9,6 +9,7 @@ export default function Home() {
         minHeight: "100vh",
         display: "grid",
         gridTemplateColumns: "260px minmax(0, 1fr) 300px",
+        alignItems: "stretch",
         background: "#0b0f14",
         color: "#e2e8f0",
       }}
