@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from "react";
 import ContextRail from "@/components/os/ContextRail";
-import IntelligenceRail from "@/components/os/IntelligenceRail";
+import IntelligenceRail, {
+  type IntelligenceNotification,
+} from "@/components/os/IntelligenceRail";
 import Workspace from "@/components/os/Workspace";
 import type { ActiveContextItem, RailSection } from "@/lib/types";
 
@@ -155,6 +157,45 @@ const sections: RailSection[] = [
     ],
   },
 ];
+
+const CONTEXTS: CommandPaletteItem[] = [
+  {
+    id: "kernel",
+    title: "Kernel",
+    description: "Inspect low-level runtime scheduling and health checks.",
+    keywords: ["system", "runtime"],
+  },
+  {
+    id: "processes",
+    title: "Processes",
+    description: "View active workloads and prioritize queue management.",
+    keywords: ["workloads", "tasks"],
+  },
+  {
+    id: "sensors",
+    title: "Sensors",
+    description: "Monitor sensor pings and stabilize signal quality.",
+    keywords: ["telemetry", "feeds"],
+  },
+  {
+    id: "operator",
+    title: "Operator",
+    description: "Sync operator notes and maintain situational awareness.",
+    keywords: ["session", "notes"],
+  },
+  {
+    id: "diagnostics",
+    title: "Diagnostics",
+    description: "Run diagnostics on live systems and loop in alerts.",
+    keywords: ["alerts", "health"],
+  },
+];
+
+const formatTimestamp = () =>
+  new Date().toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 
 export default function Home() {
   const allItems = useMemo(

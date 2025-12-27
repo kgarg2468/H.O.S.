@@ -34,6 +34,9 @@ export default function IntelligenceRail({
         <div style={{ color: "#7c879a", marginTop: "0.4rem" }}>
           Signals for {activeContext.title}
         </div>
+        <div style={{ color: "#5b6b82", marginTop: "0.6rem" }}>
+          Active context · <span style={{ color: "#e2e8f0" }}>{activeContext}</span>
+        </div>
       </div>
       {activeContext.intelligence.map((card) => (
         <div key={card.title} style={cardStyle}>
