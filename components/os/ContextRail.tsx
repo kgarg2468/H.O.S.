@@ -1,5 +1,5 @@
 import type React from "react";
-import type { ActiveContextItem, RailSection } from "@/lib/types";
+import type { ActiveContext, RailSection } from "@/lib/types";
 
 const headerStyle: React.CSSProperties = {
   fontSize: "0.85rem",
@@ -32,8 +32,8 @@ const activeItemStyle: React.CSSProperties = {
 
 interface ContextRailProps {
   sections: RailSection[];
-  activeItemId: ActiveContextItem["id"];
-  onSelect: (item: ActiveContextItem) => void;
+  activeItemId: ActiveContext["id"];
+  onSelect: (item: ActiveContext) => void;
 }
 
 export default function ContextRail({

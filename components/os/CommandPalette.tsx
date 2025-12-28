@@ -99,6 +99,12 @@ export default function CommandPalette({
   }, [isOpen]);
 
   useEffect(() => {
+    if (highlightedIndex >= filteredItems.length) {
+      setHighlightedIndex(0);
+    }
+  }, [filteredItems.length, highlightedIndex]);
+
+  useEffect(() => {
     if (!isOpen) {
       return;
     }

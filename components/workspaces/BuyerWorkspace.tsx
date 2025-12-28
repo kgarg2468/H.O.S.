@@ -1,4 +1,5 @@
 import type React from "react";
+import type { Buyer, Event, Insight } from "@/lib/types";
 
 const panelStyle: React.CSSProperties = {
   background: "rgba(15, 23, 42, 0.82)",
@@ -38,49 +39,43 @@ const statusPillStyle: React.CSSProperties = {
   fontWeight: 600,
 };
 
-const timeline = [
-  {
-    time: "Today · 9:15 AM",
-    title: "Tour feedback logged",
-    detail:
-      "Loved the Pacific Heights lighting, wants a similar view corridor.",
-  },
-  {
-    time: "Yesterday · 4:02 PM",
-    title: "Financing update",
-    detail: "Pre-approval confirmed at $2.4M with 25% down payment.",
-  },
-  {
-    time: "Sep 12 · 1:30 PM",
-    title: "Discovery call",
-    detail: "Moving timeline set for mid-November; needs home office + guest.",
-  },
-];
+const formatCurrencyRange = (min: number, max: number) =>
+  `$${min.toLocaleString("en-US")} - $${max.toLocaleString("en-US")}`;
 
-const nextActions = [
-  "Send 3 off-market opportunities in Pacific Heights under $2.3M.",
-  "Confirm inspection contingencies with lender by Friday.",
-  "Schedule second showing for 18 Laurel Street with spouse.",
-];
+const formatStatus = (status: string) =>
+  status.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
 
-const doNotShow = [
-  "High HOA fees above $950/month",
-  "Street-facing bedrooms on high-traffic roads",
-  "Renovations older than 10 years without permits",
-];
+const formatDate = (date: string) =>
+  new Date(date).toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 
-export default function BuyerWorkspace() {
+interface BuyerWorkspaceProps {
+  buyer: Buyer;
+  events: Event[];
+  insight?: Insight;
+}
+
+export default function BuyerWorkspace({
+  buyer,
+  events,
+  insight,
+}: BuyerWorkspaceProps) {
+  const timeline = [...events].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const latestEvent = timeline[0];
+  const nextActions =
+    insight?.next_actions.length
+      ? insight.next_actions
+      : [
+          "Confirm current tour availability window.",
+          "Send new listings matching preferred neighborhoods.",
+          "Review updated lender pre-approval timeline.",
+        ];
   return (
-    <main
-      style={{
-        padding: "2rem 2.25rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.75rem",
-        background: "linear-gradient(180deg, #0b1017 0%, #0b1220 100%)",
-        minHeight: "100vh",
-      }}
-    >
+    <section style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       <header style={panelStyle}>
         <div
           style={{
@@ -93,10 +88,10 @@ export default function BuyerWorkspace() {
         >
           <div>
             <div style={{ fontSize: "1.6rem", fontWeight: 700 }}>
-              Elena Ramirez
+              {buyer.name}
             </div>
             <div style={{ color: "#94a3b8", marginTop: "0.35rem" }}>
-              VP of Product · Arcadia Fintech · San Francisco, CA
+              {buyer.email} · {buyer.phone}
             </div>
           </div>
           <div style={statusPillStyle}>
@@ -109,7 +104,8 @@ export default function BuyerWorkspace() {
                 display: "inline-block",
               }}
             />
-            Active buyer · Touring
+            {buyer.preapproved ? "Pre-approved" : "Needs approval"} ·{" "}
+            {formatStatus(buyer.status)}
           </div>
         </div>
         <div
@@ -120,14 +116,25 @@ export default function BuyerWorkspace() {
             marginTop: "1rem",
           }}
         >
-          {["Priority: High", "Pre-approved", "Timeline: 60 days"].map((tag) => (
+          {[
+            `Budget: ${formatCurrencyRange(
+              buyer.budget_min,
+              buyer.budget_max
+            )}`,
+            `Timeline: ${buyer.timeline}`,
+            buyer.preapproved ? "Pre-approved" : "Needs pre-approval",
+          ].map((tag) => (
             <span key={tag} style={tagStyle}>
               {tag}
             </span>
           ))}
         </div>
         <div style={{ ...mutedTextStyle, marginTop: "1rem" }}>
-          Last touchpoint: 3 hours ago · Responds best via text between 4-6 PM.
+          {latestEvent
+            ? `Last touchpoint: ${formatDate(latestEvent.date)} · ${
+                latestEvent.notes
+              }`
+            : "No recent touchpoints logged."}
         </div>
       </header>
 
@@ -148,7 +155,9 @@ export default function BuyerWorkspace() {
                 Budget + financing
               </div>
               <p style={mutedTextStyle}>
-                $2.1M - $2.4M purchase range · Conventional loan · 25% down.
+                {formatCurrencyRange(buyer.budget_min, buyer.budget_max)}{" "}
+                purchase range ·{" "}
+                {buyer.preapproved ? "Pre-approved" : "Not pre-approved"}
               </p>
             </div>
             <div>
@@ -156,8 +165,7 @@ export default function BuyerWorkspace() {
                 Neighborhoods
               </div>
               <p style={mutedTextStyle}>
-                Pacific Heights, Noe Valley, Duboce Triangle. Open to Cole
-                Valley for turnkey inventory.
+                {buyer.preferred_locations.join(", ")}
               </p>
             </div>
             <div>
@@ -171,9 +179,12 @@ export default function BuyerWorkspace() {
                   margin: 0,
                 }}
               >
-                <li>3+ bedrooms, dedicated office, 2 parking spots</li>
-                <li>Natural light + south-facing living area</li>
-                <li>Walk score 85+</li>
+                <li>
+                  {buyer.bedrooms_min}+ beds · {buyer.bathrooms_min}+ baths
+                </li>
+                {buyer.must_haves.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
               </ul>
             </div>
             <div>
@@ -181,8 +192,7 @@ export default function BuyerWorkspace() {
                 Communication
               </div>
               <p style={mutedTextStyle}>
-                Prefers bi-weekly summaries, 2-3 listings per email, proactive
-                heads-up on off-market opportunities.
+                {buyer.notes}
               </p>
             </div>
           </div>
@@ -202,7 +212,7 @@ export default function BuyerWorkspace() {
             <div style={{ display: "grid", gap: "1rem" }}>
               {timeline.map((event) => (
                 <div
-                  key={event.title}
+                  key={event.id}
                   style={{
                     padding: "0.85rem 1rem",
                     borderRadius: "0.75rem",
@@ -211,13 +221,13 @@ export default function BuyerWorkspace() {
                   }}
                 >
                   <div style={{ color: "#7dd3fc", fontSize: "0.82rem" }}>
-                    {event.time}
+                    {formatDate(event.date)} · {formatStatus(event.type)}
                   </div>
                   <div style={{ fontWeight: 600, marginTop: "0.35rem" }}>
-                    {event.title}
+                    {event.outcome}
                   </div>
                   <p style={{ ...mutedTextStyle, marginTop: "0.35rem" }}>
-                    {event.detail}
+                    {event.notes}
                   </p>
                 </div>
               ))}
@@ -246,7 +256,7 @@ export default function BuyerWorkspace() {
 
             <div style={panelStyle}>
               <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>
-                Do-not-show list
+                Property types
               </div>
               <ul
                 style={{
@@ -257,7 +267,7 @@ export default function BuyerWorkspace() {
                   gap: "0.65rem",
                 }}
               >
-                {doNotShow.map((item) => (
+                {buyer.property_types.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
               </ul>
@@ -265,6 +275,6 @@ export default function BuyerWorkspace() {
           </div>
         </div>
       </section>
-    </main>
+    </section>
   );
 }
