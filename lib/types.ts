@@ -10,7 +10,7 @@ export type JsonArray = JsonValue[];
 
 export type MockData<T extends JsonValue = JsonValue> = T;
 
-export type ActiveContextType = "buyer" | "deal" | "property";
+export type ActiveContextType = "buyer" | "deal" | "property" | "command";
 
 export interface Metric {
   label: string;
