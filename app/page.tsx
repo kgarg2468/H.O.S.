@@ -1,44 +1,118 @@
-"use client";
+import HomeClient from "@/app/HomeClient";
+import { loadMockJsonSync } from "@/lib/mock";
+import type { RailSection } from "@/lib/types";
 
-import { useState } from "react";
-import ContextRail from "@/components/os/ContextRail";
-import IntelligenceRail from "@/components/os/IntelligenceRail";
-import Workspace from "@/components/os/Workspace";
-import type {
-  ActiveContext,
-  Buyer,
-  Deal,
-  Insight,
-  Property,
-  RailSection,
-} from "@/lib/types";
-import buyersData from "@/data/buyers.json";
-import dealsData from "@/data/deals.json";
-import insightsData from "@/data/insights.json";
-import propertiesData from "@/data/properties.json";
+type Buyer = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  budget_min: number;
+  budget_max: number;
+  preferred_locations: string[];
+  property_types: string[];
+  bedrooms_min: number;
+  bathrooms_min: number;
+  must_haves: string[];
+  timeline: string;
+  preapproved: boolean;
+  status: string;
+  notes: string;
+};
 
-const buyers = buyersData as Buyer[];
-const deals = dealsData as Deal[];
-const insights = insightsData as Insight[];
-const properties = propertiesData as Property[];
+type Deal = {
+  id: string;
+  buyer_id: string;
+  property_id: string;
+  stage: string;
+  list_price: number;
+  offer_price: number | null;
+  financing: string;
+  contingencies: string[];
+  offer_date: string | null;
+  close_target: string | null;
+  agent: string;
+  status: string;
+};
 
-const formatStatus = (value: string) =>
-  value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
+type Property = {
+  id: string;
+  address: string;
+  city: string;
+  state: string;
+  zip: string;
+  neighborhood: string;
+  type: string;
+  bedrooms: number;
+  bathrooms: number;
+  sqft: number;
+  price: number;
+  features: string[];
+  status: string;
+  listed_at: string;
+  days_on_market: number;
+};
 
-const formatCurrency = (value: number) =>
-  `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+type Insight = {
+  id: string;
+  buyer_id: string;
+  fit_score: number;
+  top_properties: string[];
+  rationale: string;
+  next_actions: string[];
+};
+
+const buyers = loadMockJsonSync<Buyer[]>("data/buyers.json");
+const deals = loadMockJsonSync<Deal[]>("data/deals.json");
+const properties = loadMockJsonSync<Property[]>("data/properties.json");
+const insights = loadMockJsonSync<Insight[]>("data/insights.json");
+
+const propertiesById = new Map(properties.map((property) => [property.id, property]));
+const buyersById = new Map(buyers.map((buyer) => [buyer.id, buyer]));
+const insightsByBuyer = new Map(
+  insights.map((insight) => [insight.buyer_id, insight])
+);
+
+const currencyFormatter = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+const formatCurrency = (value: number | null | undefined): string =>
+  value == null ? "TBD" : currencyFormatter.format(value);
+
+const formatStatus = (value: string): string =>
+  value
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
+const formatDate = (value: string | null): string =>
+  value
+    ? new Date(value).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+      })
+    : "TBD";
+
+const formatBathrooms = (value: number): string =>
+  Number.isInteger(value) ? value.toString() : value.toFixed(1);
 
 const sections: RailSection[] = [
   {
     title: "Buyers",
-    items: buyers.slice(0, 2).map((buyer) => {
-      const insight = insights.find((item) => item.buyer_id === buyer.id);
+    items: buyers.map((buyer) => {
+      const insight = insightsByBuyer.get(buyer.id);
+      const topProperties = insight?.top_properties
+        .map((propertyId) => propertiesById.get(propertyId)?.address)
+        .filter(Boolean)
+        .slice(0, 2);
       return {
         id: buyer.id,
         type: "buyer",
         title: buyer.name,
         description: buyer.notes,
-        status: formatStatus(buyer.status),
+        status: `${formatStatus(buyer.status)} · ${buyer.timeline}`,
         metrics: [
           {
             label: "Budget",
@@ -46,59 +120,61 @@ const sections: RailSection[] = [
               buyer.budget_max
             )}`,
           },
-          { label: "Timeline", value: buyer.timeline },
-          { label: "Preapproved", value: buyer.preapproved ? "Yes" : "No" },
+          {
+            label: "Locations",
+            value: buyer.preferred_locations.slice(0, 2).join(", "),
+          },
+          {
+            label: "Preapproved",
+            value: buyer.preapproved ? "Yes" : "Pending",
+          },
         ],
-        intelligence: insight
-          ? [
-              {
-                title: "Fit score",
-                description: `${insight.fit_score} · ${insight.rationale}`,
-              },
-              {
-                title: "Next action",
-                description: insight.next_actions[0] ?? "Review buyer plan.",
-              },
-            ]
-          : [],
+        intelligence: [
+          {
+            title: "Fit score",
+            description: insight
+              ? `${insight.fit_score}/100 · ${insight.rationale}`
+              : "Insight pending.",
+          },
+          {
+            title: "Next actions",
+            description: insight?.next_actions?.length
+              ? insight.next_actions.join(" · ")
+              : topProperties?.length
+              ? `Review top matches: ${topProperties.join(", ")}.`
+              : "Prepare next outreach touchpoint.",
+          },
+        ],
       };
     }),
   },
   {
     title: "Deals",
-    items: deals.slice(0, 2).map((deal) => {
-      const buyer = buyers.find((item) => item.id === deal.buyer_id);
-      const property = properties.find(
-        (item) => item.id === deal.property_id
-      );
+    items: deals.map((deal) => {
+      const property = propertiesById.get(deal.property_id);
+      const buyer = buyersById.get(deal.buyer_id);
       return {
         id: deal.id,
         type: "deal",
-        title: buyer ? `${buyer.name} · ${deal.id}` : `Deal ${deal.id}`,
-        description: property
-          ? `${property.address} · ${property.neighborhood}`
-          : "Active deal pipeline",
+        title: property ? property.address : `Deal ${deal.id}`,
+        description: `${buyer?.name ?? "Unknown buyer"} · ${
+          property?.neighborhood ?? "Property"
+        }`,
         status: `${formatStatus(deal.stage)} · ${formatStatus(deal.status)}`,
         metrics: [
           { label: "List price", value: formatCurrency(deal.list_price) },
-          {
-            label: "Offer price",
-            value: formatCurrency(deal.offer_price ?? deal.list_price),
-          },
-          {
-            label: "Close target",
-            value: deal.close_target ?? "TBD",
-          },
+          { label: "Offer price", value: formatCurrency(deal.offer_price) },
+          { label: "Close target", value: formatDate(deal.close_target) },
         ],
         intelligence: [
           {
             title: "Financing",
-            description: formatStatus(deal.financing),
+            description: `${formatStatus(deal.financing)} · Agent ${deal.agent}`,
           },
           {
             title: "Contingencies",
             description: deal.contingencies.length
-              ? deal.contingencies.join(", ")
+              ? deal.contingencies.map(formatStatus).join(" · ")
               : "None",
           },
         ],
@@ -107,97 +183,40 @@ const sections: RailSection[] = [
   },
   {
     title: "Properties",
-    items: properties.slice(0, 2).map((property) => ({
+    items: properties.map((property) => ({
       id: property.id,
       type: "property",
       title: property.address,
-      description: `${property.neighborhood} · ${formatStatus(property.type)}`,
-      status: `${formatStatus(property.status)} · ${property.days_on_market} DOM`,
+      description: `${property.neighborhood} · ${property.city}, ${property.state}`,
+      status: `${formatStatus(property.status)} · ${
+        property.days_on_market
+      } days on market`,
       metrics: [
         { label: "Price", value: formatCurrency(property.price) },
-        { label: "Beds", value: `${property.bedrooms}` },
-        { label: "Baths", value: `${property.bathrooms}` },
+        {
+          label: "Beds/Baths",
+          value: `${property.bedrooms} bd / ${formatBathrooms(
+            property.bathrooms
+          )} ba`,
+        },
+        { label: "Sqft", value: property.sqft.toLocaleString("en-US") },
       ],
       intelligence: [
         {
-          title: "Highlights",
-          description: property.features.slice(0, 2).join(", "),
+          title: "Top features",
+          description: property.features.slice(0, 3).join(" · "),
         },
         {
-          title: "Listed",
-          description: `${property.days_on_market} days on market`,
+          title: "Listing",
+          description: `Listed ${formatDate(
+            property.listed_at
+          )} · ${property.days_on_market} DOM`,
         },
       ],
     })),
   },
 ];
 
-const CONTEXTS: CommandPaletteItem[] = [
-  {
-    id: "kernel",
-    title: "Kernel",
-    description: "Inspect low-level runtime scheduling and health checks.",
-    keywords: ["system", "runtime"],
-  },
-  {
-    id: "processes",
-    title: "Processes",
-    description: "View active workloads and prioritize queue management.",
-    keywords: ["workloads", "tasks"],
-  },
-  {
-    id: "sensors",
-    title: "Sensors",
-    description: "Monitor sensor pings and stabilize signal quality.",
-    keywords: ["telemetry", "feeds"],
-  },
-  {
-    id: "operator",
-    title: "Operator",
-    description: "Sync operator notes and maintain situational awareness.",
-    keywords: ["session", "notes"],
-  },
-  {
-    id: "diagnostics",
-    title: "Diagnostics",
-    description: "Run diagnostics on live systems and loop in alerts.",
-    keywords: ["alerts", "health"],
-  },
-];
-
-const commandContext: ActiveContext = {
-  id: "command-center",
-  type: "command",
-  title: "Command Center",
-  description: "Live signal routing for active revenue moments.",
-  status: "System ready",
-  metrics: [],
-  intelligence: [],
-};
-
 export default function Home() {
-  const [activeContext, setActiveContext] = useState<ActiveContext>(
-    commandContext
-  );
-
-  return (
-    <div
-      style={{
-        minHeight: "100vh",
-        display: "grid",
-        gridTemplateColumns: "260px minmax(0, 1fr) 300px",
-        alignItems: "stretch",
-        background: "#0b0f14",
-        color: "#e2e8f0",
-      }}
-    >
-      <ContextRail
-        sections={sections}
-        activeItemId={activeContext.id}
-        onSelect={setActiveContext}
-      />
-      <Workspace activeContext={activeContext} />
-      <IntelligenceRail activeContext={activeContext} />
-    </div>
-  );
+  return <HomeClient sections={sections} />;
 }
