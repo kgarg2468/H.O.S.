@@ -117,19 +117,30 @@ export default function PropertyWorkspace({
                 : [...prev, property.id]
             );
           }}
+          disabled={!isInAnalysis && isAtLimit}
           style={{
             padding: "0.6rem 1.1rem",
             borderRadius: "999px",
             border: "1px solid rgba(59, 130, 246, 0.5)",
             background: isInAnalysis
               ? "rgba(59, 130, 246, 0.25)"
-              : "rgba(15, 23, 42, 0.8)",
-            color: isInAnalysis ? "#e0f2fe" : "#bfdbfe",
+              : isAtLimit
+                ? "rgba(15, 23, 42, 0.4)"
+                : "rgba(15, 23, 42, 0.8)",
+            color: isInAnalysis
+              ? "#e0f2fe"
+              : isAtLimit
+                ? "#64748b"
+                : "#bfdbfe",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: !isInAnalysis && isAtLimit ? "not-allowed" : "pointer",
           }}
         >
-          {isInAnalysis ? "Added to analysis" : "Add to analysis"}
+          {isInAnalysis
+            ? "Added to analysis"
+            : isAtLimit
+              ? "Analysis tray full"
+              : "Add to analysis"}
         </button>
       </header>
 
