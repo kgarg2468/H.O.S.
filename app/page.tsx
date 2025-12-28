@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import CommandPalette, {
+  type CommandPaletteItem,
+} from "@/components/os/CommandPalette";
 import ContextRail from "@/components/os/ContextRail";
-import IntelligenceRail, {
-  type IntelligenceNotification,
-} from "@/components/os/IntelligenceRail";
+import IntelligenceRail from "@/components/os/IntelligenceRail";
 import Workspace from "@/components/os/Workspace";
 import type { ActiveContextItem, RailSection } from "@/lib/types";
 
@@ -158,44 +159,24 @@ const sections: RailSection[] = [
   },
 ];
 
-const CONTEXTS: CommandPaletteItem[] = [
-  {
-    id: "kernel",
-    title: "Kernel",
-    description: "Inspect low-level runtime scheduling and health checks.",
-    keywords: ["system", "runtime"],
-  },
-  {
-    id: "processes",
-    title: "Processes",
-    description: "View active workloads and prioritize queue management.",
-    keywords: ["workloads", "tasks"],
-  },
-  {
-    id: "sensors",
-    title: "Sensors",
-    description: "Monitor sensor pings and stabilize signal quality.",
-    keywords: ["telemetry", "feeds"],
-  },
-  {
-    id: "operator",
-    title: "Operator",
-    description: "Sync operator notes and maintain situational awareness.",
-    keywords: ["session", "notes"],
-  },
-  {
-    id: "diagnostics",
-    title: "Diagnostics",
-    description: "Run diagnostics on live systems and loop in alerts.",
-    keywords: ["alerts", "health"],
-  },
-];
-
 const formatTimestamp = () =>
   new Date().toLocaleTimeString([], {
     hour: "2-digit",
     minute: "2-digit",
   });
+
+const isEditableElement = (element: EventTarget | null) => {
+  if (!(element instanceof HTMLElement)) {
+    return false;
+  }
+
+  if (element.isContentEditable) {
+    return true;
+  }
+
+  const tagName = element.tagName;
+  return ["INPUT", "TEXTAREA", "SELECT"].includes(tagName);
+};
 
 export default function Home() {
   const allItems = useMemo(
@@ -205,6 +186,54 @@ export default function Home() {
   const [activeContext, setActiveContext] = useState<ActiveContextItem>(
     allItems[0]
   );
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
+
+  const paletteItems = useMemo<CommandPaletteItem[]>(
+    () =>
+      sections.flatMap((section) =>
+        section.items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          description: `${section.title} · ${item.description}`,
+          keywords: [
+            section.title,
+            item.type,
+            item.status,
+            ...(item.metrics ?? []).map((metric) => metric.label),
+          ],
+        }))
+      ),
+    []
+  );
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (
+        event.key.toLowerCase() !== "k" ||
+        (!event.metaKey && !event.ctrlKey)
+      ) {
+        return;
+      }
+
+      if (isEditableElement(event.target)) {
+        return;
+      }
+
+      event.preventDefault();
+      setIsPaletteOpen((prev) => !prev);
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const handlePaletteSelect = (item: CommandPaletteItem) => {
+    const nextContext = allItems.find((context) => context.id === item.id);
+    if (nextContext) {
+      setActiveContext(nextContext);
+    }
+    setIsPaletteOpen(false);
+  };
 
   return (
     <div
@@ -224,6 +253,13 @@ export default function Home() {
       />
       <Workspace activeContext={activeContext} />
       <IntelligenceRail activeContext={activeContext} />
+      <CommandPalette
+        isOpen={isPaletteOpen}
+        items={paletteItems}
+        activeId={activeContext.id}
+        onSelect={handlePaletteSelect}
+        onClose={() => setIsPaletteOpen(false)}
+      />
     </div>
   );
 }
