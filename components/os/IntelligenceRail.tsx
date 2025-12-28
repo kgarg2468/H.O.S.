@@ -1,5 +1,5 @@
 import type React from "react";
-import type { ActiveContextItem } from "@/lib/types";
+import type { ActiveContext } from "@/lib/types";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -10,7 +10,7 @@ const cardStyle: React.CSSProperties = {
 };
 
 interface IntelligenceRailProps {
-  activeContext: ActiveContextItem;
+  activeContext: ActiveContext;
 }
 
 export default function IntelligenceRail({
@@ -36,10 +36,10 @@ export default function IntelligenceRail({
         </div>
         <div style={{ color: "#5b6b82", marginTop: "0.6rem" }}>
           Active context ·{" "}
-          <span style={{ color: "#e2e8f0" }}>{activeContext.title}</span>
+          <span style={{ color: "#e2e8f0" }}>{activeContext.type}</span>
         </div>
       </div>
-      {activeContext.intelligence.map((card) => (
+      {(activeContext.intelligence ?? []).map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}

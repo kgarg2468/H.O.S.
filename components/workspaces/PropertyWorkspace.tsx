@@ -2,27 +2,7 @@
 
 import type React from "react";
 import { useMemo, useState } from "react";
-import propertiesData from "@/data/properties.json";
-
-interface Property {
-  id: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  neighborhood: string;
-  type: string;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  price: number;
-  features: string[];
-  status: string;
-  listed_at: string;
-  days_on_market: number;
-}
-
-const properties = propertiesData as Property[];
+import type { Property } from "@/lib/types";
 
 const panelStyle: React.CSSProperties = {
   background: "rgba(15, 23, 42, 0.8)",
@@ -52,78 +32,65 @@ const formatType = (type: string) =>
     .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
     .join(" ");
 
-export default function PropertyWorkspace() {
-  const [selectedId, setSelectedId] = useState<string>(
-    properties[0]?.id ?? ""
-  );
+interface PropertyWorkspaceProps {
+  property: Property;
+  properties: Property[];
+}
+
+export default function PropertyWorkspace({
+  property,
+  properties,
+}: PropertyWorkspaceProps) {
   const [analysisIds, setAnalysisIds] = useState<string[]>([]);
 
-  const selectedProperty = useMemo(
-    () => properties.find((property) => property.id === selectedId),
-    [selectedId]
-  );
-
   const comparableProperties = useMemo(() => {
-    if (!selectedProperty) return [];
-
     return properties
       .filter(
-        (property) =>
-          property.id !== selectedProperty.id &&
-          property.type === selectedProperty.type
+        (item) => item.id !== property.id && item.type === property.type
       )
       .slice(0, 3);
-  }, [selectedProperty]);
+  }, [properties, property.id, property.type]);
 
-  if (!selectedProperty) {
-    return null;
-  }
+  const relatedProperties = useMemo(
+    () => properties.filter((item) => item.id !== property.id).slice(0, 4),
+    [properties, property.id]
+  );
 
-  const isInAnalysis = analysisIds.includes(selectedProperty.id);
+  const isInAnalysis = analysisIds.includes(property.id);
 
   const detailChips = [
     {
       label: "Type",
-      value: formatType(selectedProperty.type),
+      value: formatType(property.type),
     },
     {
       label: "Beds",
-      value: `${selectedProperty.bedrooms}`,
+      value: `${property.bedrooms}`,
     },
     {
       label: "Baths",
-      value: `${selectedProperty.bathrooms}`,
+      value: `${property.bathrooms}`,
     },
     {
       label: "Sq Ft",
-      value: `${selectedProperty.sqft.toLocaleString("en-US")}`,
+      value: `${property.sqft.toLocaleString("en-US")}`,
     },
     {
       label: "Price",
-      value: formatPrice(selectedProperty.price),
+      value: formatPrice(property.price),
     },
     {
       label: "Days on market",
-      value: `${selectedProperty.days_on_market} days`,
+      value: `${property.days_on_market} days`,
     },
     {
       label: "Status",
-      value: formatType(selectedProperty.status),
+      value: formatType(property.status),
     },
   ];
 
   return (
-    <main
-      style={
-        {
-          padding: "2rem",
-          display: "flex",
-          flexDirection: "column",
-          gap: "1.5rem",
-          background: "linear-gradient(180deg, #0b1017 0%, #0b1220 100%)",
-        }
-      }
-    >
+    <section style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header
         style={{
           display: "flex",
@@ -138,16 +105,16 @@ export default function PropertyWorkspace() {
             Property Workspace
           </div>
           <div style={{ color: "#94a3b8", marginTop: "0.35rem" }}>
-            {selectedProperty.address}, {selectedProperty.city}
+            {property.address}, {property.city}
           </div>
         </div>
         <button
           type="button"
           onClick={() => {
             setAnalysisIds((prev) =>
-              prev.includes(selectedProperty.id)
-                ? prev.filter((id) => id !== selectedProperty.id)
-                : [...prev, selectedProperty.id]
+              prev.includes(property.id)
+                ? prev.filter((id) => id !== property.id)
+                : [...prev, property.id]
             );
           }}
           style={{
@@ -173,36 +140,26 @@ export default function PropertyWorkspace() {
           gap: "0.75rem",
         }}
       >
-        {properties.map((property) => {
-          const isSelected = property.id === selectedProperty.id;
-          return (
-            <button
-              key={property.id}
-              type="button"
-              onClick={() => setSelectedId(property.id)}
-              style={{
-                textAlign: "left",
-                background: isSelected
-                  ? "rgba(59, 130, 246, 0.2)"
-                  : "rgba(15, 23, 42, 0.8)",
-                borderRadius: "0.9rem",
-                border: isSelected
-                  ? "1px solid rgba(59, 130, 246, 0.6)"
-                  : "1px solid rgba(148, 163, 184, 0.12)",
-                padding: "0.85rem 1rem",
-                color: "#e2e8f0",
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
-                {property.address}
-              </div>
-              <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
-                {property.neighborhood} · {formatPrice(property.price)}
-              </div>
-            </button>
-          );
-        })}
+        {relatedProperties.map((item) => (
+          <div
+            key={item.id}
+            style={{
+              textAlign: "left",
+              background: "rgba(15, 23, 42, 0.8)",
+              borderRadius: "0.9rem",
+              border: "1px solid rgba(148, 163, 184, 0.12)",
+              padding: "0.85rem 1rem",
+              color: "#e2e8f0",
+            }}
+          >
+            <div style={{ fontWeight: 600, marginBottom: "0.25rem" }}>
+              {item.address}
+            </div>
+            <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
+              {item.neighborhood} · {formatPrice(item.price)}
+            </div>
+          </div>
+        ))}
       </section>
 
       <section style={panelStyle}>
@@ -252,17 +209,17 @@ export default function PropertyWorkspace() {
             Remarks
           </div>
           <p style={{ color: "#cbd5f5", lineHeight: 1.6 }}>
-            {selectedProperty.address} offers {selectedProperty.bedrooms} beds and
+            {property.address} offers {property.bedrooms} beds and
             {" "}
-            {selectedProperty.bathrooms} baths with
+            {property.bathrooms} baths with
             {" "}
-            {selectedProperty.sqft.toLocaleString("en-US")} sq ft. Listed
+            {property.sqft.toLocaleString("en-US")} sq ft. Listed
             {" "}
-            {selectedProperty.days_on_market} days ago at
+            {property.days_on_market} days ago at
             {" "}
-            {formatPrice(selectedProperty.price)}. Key highlights include
+            {formatPrice(property.price)}. Key highlights include
             {" "}
-            {selectedProperty.features.slice(0, 3).join(", ")}.
+            {property.features.slice(0, 3).join(", ")}.
           </p>
         </div>
       </section>
@@ -300,6 +257,6 @@ export default function PropertyWorkspace() {
           ))}
         </div>
       </section>
-    </main>
+    </section>
   );
 }
