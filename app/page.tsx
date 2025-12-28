@@ -1,160 +1,134 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import ContextRail from "@/components/os/ContextRail";
-import IntelligenceRail, {
-  type IntelligenceNotification,
-} from "@/components/os/IntelligenceRail";
+import IntelligenceRail from "@/components/os/IntelligenceRail";
 import Workspace from "@/components/os/Workspace";
-import type { ActiveContextItem, RailSection } from "@/lib/types";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Insight,
+  Property,
+  RailSection,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import dealsData from "@/data/deals.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
+
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const insights = insightsData as Insight[];
+const properties = propertiesData as Property[];
+
+const formatStatus = (value: string) =>
+  value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
+
+const formatCurrency = (value: number) =>
+  `$${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
 
 const sections: RailSection[] = [
   {
     title: "Buyers",
-    items: [
-      {
-        id: "buyer-atlas",
+    items: buyers.slice(0, 2).map((buyer) => {
+      const insight = insights.find((item) => item.buyer_id === buyer.id);
+      return {
+        id: buyer.id,
         type: "buyer",
-        title: "Atlas Capital",
-        description: "Buyer profile synced with underwriting signals.",
-        status: "Qualification in progress",
+        title: buyer.name,
+        description: buyer.notes,
+        status: formatStatus(buyer.status),
         metrics: [
-          { label: "Lead score", value: "91" },
-          { label: "Portfolio fit", value: "Industrial flex" },
-          { label: "Capital ready", value: "$38.2M" },
-        ],
-        intelligence: [
           {
-            title: "Engagement pulse",
-            description: "Responded to two outreach threads in the last 24 hours.",
+            label: "Budget",
+            value: `${formatCurrency(buyer.budget_min)} - ${formatCurrency(
+              buyer.budget_max
+            )}`,
           },
-          {
-            title: "Next best action",
-            description: "Schedule a site tour with the acquisitions team.",
-          },
+          { label: "Timeline", value: buyer.timeline },
+          { label: "Preapproved", value: buyer.preapproved ? "Yes" : "No" },
         ],
-      },
-      {
-        id: "buyer-vertex",
-        type: "buyer",
-        title: "Vertex Holdings",
-        description: "Enterprise buyer with pending cross-market approval.",
-        status: "Awaiting investment committee review",
-        metrics: [
-          { label: "Lead score", value: "84" },
-          { label: "Portfolio fit", value: "Medical office" },
-          { label: "Capital ready", value: "$22.6M" },
-        ],
-        intelligence: [
-          {
-            title: "Risk watch",
-            description: "Finance team needs updated NOI breakdown before approval.",
-          },
-          {
-            title: "Suggested follow-up",
-            description: "Send rent roll addendum and closing timeline.",
-          },
-        ],
-      },
-    ],
+        intelligence: insight
+          ? [
+              {
+                title: "Fit score",
+                description: `${insight.fit_score} · ${insight.rationale}`,
+              },
+              {
+                title: "Next action",
+                description: insight.next_actions[0] ?? "Review buyer plan.",
+              },
+            ]
+          : [],
+      };
+    }),
   },
   {
     title: "Deals",
-    items: [
-      {
-        id: "deal-orion",
+    items: deals.slice(0, 2).map((deal) => {
+      const buyer = buyers.find((item) => item.id === deal.buyer_id);
+      const property = properties.find(
+        (item) => item.id === deal.property_id
+      );
+      return {
+        id: deal.id,
         type: "deal",
-        title: "Project Orion",
-        description: "Mid-market acquisition pipeline for Q3.",
-        status: "Under contract · diligence day 12",
+        title: buyer ? `${buyer.name} · ${deal.id}` : `Deal ${deal.id}`,
+        description: property
+          ? `${property.address} · ${property.neighborhood}`
+          : "Active deal pipeline",
+        status: `${formatStatus(deal.stage)} · ${formatStatus(deal.status)}`,
         metrics: [
-          { label: "Deal value", value: "$12.4M" },
-          { label: "IRR target", value: "17.8%" },
-          { label: "Close ETA", value: "Aug 28" },
+          { label: "List price", value: formatCurrency(deal.list_price) },
+          {
+            label: "Offer price",
+            value: formatCurrency(deal.offer_price ?? deal.list_price),
+          },
+          {
+            label: "Close target",
+            value: deal.close_target ?? "TBD",
+          },
         ],
         intelligence: [
           {
-            title: "Diligence focus",
-            description: "Environmental report flagged roof replacement.",
+            title: "Financing",
+            description: formatStatus(deal.financing),
           },
           {
-            title: "Stakeholder update",
-            description: "Seller counsel awaiting revised term sheet.",
+            title: "Contingencies",
+            description: deal.contingencies.length
+              ? deal.contingencies.join(", ")
+              : "None",
           },
         ],
-      },
-      {
-        id: "deal-nova",
-        type: "deal",
-        title: "Nova Exchange",
-        description: "1031 exchange queue prioritization.",
-        status: "LOI drafted · counter expected",
-        metrics: [
-          { label: "Deal value", value: "$8.1M" },
-          { label: "IRR target", value: "15.2%" },
-          { label: "Close ETA", value: "Sep 14" },
-        ],
-        intelligence: [
-          {
-            title: "Negotiation signal",
-            description: "Broker signaled flexibility on deposit schedule.",
-          },
-          {
-            title: "Next best action",
-            description: "Prepare revised pricing sensitivity report.",
-          },
-        ],
-      },
-    ],
+      };
+    }),
   },
   {
     title: "Properties",
-    items: [
-      {
-        id: "property-harbor",
-        type: "property",
-        title: "Harbor Point",
-        description: "Retail center with refreshed leasing momentum.",
-        status: "Occupancy 92% · renewal cycle active",
-        metrics: [
-          { label: "NOI", value: "$1.4M" },
-          { label: "Occupancy", value: "92%" },
-          { label: "Top tenant", value: "Blue Harbor" },
-        ],
-        intelligence: [
-          {
-            title: "Leasing signal",
-            description: "Two renewals signed ahead of schedule.",
-          },
-          {
-            title: "Action item",
-            description: "Review CAM reconciliation for Q2.",
-          },
-        ],
-      },
-      {
-        id: "property-summit",
-        type: "property",
-        title: "Summit Ridge",
-        description: "Class A office repositioning underway.",
-        status: "Capital plan approval pending",
-        metrics: [
-          { label: "NOI", value: "$2.2M" },
-          { label: "Occupancy", value: "81%" },
-          { label: "Capex", value: "$1.1M" },
-        ],
-        intelligence: [
-          {
-            title: "Tenant intel",
-            description: "Anchor tenant requesting expansion options.",
-          },
-          {
-            title: "Next best action",
-            description: "Draft phased build-out plan for review.",
-          },
-        ],
-      },
-    ],
+    items: properties.slice(0, 2).map((property) => ({
+      id: property.id,
+      type: "property",
+      title: property.address,
+      description: `${property.neighborhood} · ${formatStatus(property.type)}`,
+      status: `${formatStatus(property.status)} · ${property.days_on_market} DOM`,
+      metrics: [
+        { label: "Price", value: formatCurrency(property.price) },
+        { label: "Beds", value: `${property.bedrooms}` },
+        { label: "Baths", value: `${property.bathrooms}` },
+      ],
+      intelligence: [
+        {
+          title: "Highlights",
+          description: property.features.slice(0, 2).join(", "),
+        },
+        {
+          title: "Listed",
+          description: `${property.days_on_market} days on market`,
+        },
+      ],
+    })),
   },
 ];
 
@@ -191,19 +165,19 @@ const CONTEXTS: CommandPaletteItem[] = [
   },
 ];
 
-const formatTimestamp = () =>
-  new Date().toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const commandContext: ActiveContext = {
+  id: "command-center",
+  type: "command",
+  title: "Command Center",
+  description: "Live signal routing for active revenue moments.",
+  status: "System ready",
+  metrics: [],
+  intelligence: [],
+};
 
 export default function Home() {
-  const allItems = useMemo(
-    () => sections.flatMap((section) => section.items),
-    []
-  );
-  const [activeContext, setActiveContext] = useState<ActiveContextItem>(
-    allItems[0]
+  const [activeContext, setActiveContext] = useState<ActiveContext>(
+    commandContext
   );
 
   return (
