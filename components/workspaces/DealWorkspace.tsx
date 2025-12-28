@@ -1,46 +1,5 @@
 import type React from "react";
-
-export type DealTimelineEvent = {
-  id: string;
-  date: string;
-  title: string;
-  detail: string;
-};
-
-export type DealRisk = {
-  id: string;
-  title: string;
-  confidence: number;
-  mitigation: string;
-};
-
-export type DealIntervention = {
-  id: string;
-  title: string;
-  owner: string;
-  eta: string;
-};
-
-export type DealExplainabilitySignal = {
-  id: string;
-  signal: string;
-  impact: string;
-};
-
-export type DealWorkspaceData = {
-  id: string;
-  name: string;
-  account: string;
-  stage: string;
-  value: string;
-  closeDate: string;
-  momentum: string;
-  timeInState: string;
-  timeline: DealTimelineEvent[];
-  risks: DealRisk[];
-  interventions: DealIntervention[];
-  explainability: DealExplainabilitySignal[];
-};
+import type { Buyer, Deal, Event, Property } from "@/lib/types";
 
 const panelStyle: React.CSSProperties = {
   background: "rgba(15, 23, 42, 0.8)",
@@ -67,11 +26,39 @@ const pillStyle: React.CSSProperties = {
   border: "1px solid rgba(56, 189, 248, 0.35)",
 };
 
+const formatPrice = (price: number | null) =>
+  price === null
+    ? "—"
+    : `$${price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+
+const formatDate = (value: string | null) =>
+  value
+    ? new Date(value).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+    : "TBD";
+
+const formatStatus = (value: string) =>
+  value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
+
+interface DealWorkspaceProps {
+  deal: Deal;
+  buyer?: Buyer;
+  property?: Property;
+  events: Event[];
+}
+
 export default function DealWorkspace({
   deal,
-}: {
-  deal: DealWorkspaceData;
-}) {
+  buyer,
+  property,
+  events,
+}: DealWorkspaceProps) {
+  const timeline = [...events].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header style={panelStyle}>
@@ -85,16 +72,18 @@ export default function DealWorkspace({
         >
           <div>
             <div style={{ fontSize: "1.35rem", fontWeight: 600 }}>
-              {deal.name}
+              {buyer?.name ?? "Buyer"} · {property?.address ?? "Property"}
             </div>
             <div style={{ color: "#94a3b8", marginTop: "0.35rem" }}>
-              {deal.account} · {deal.stage}
+              Deal {deal.id} · {formatStatus(deal.stage)}
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <div style={{ fontWeight: 600 }}>{deal.value}</div>
+            <div style={{ fontWeight: 600 }}>
+              {formatPrice(deal.offer_price ?? deal.list_price)}
+            </div>
             <div style={{ color: "#94a3b8", marginTop: "0.25rem" }}>
-              Target close {deal.closeDate}
+              Target close {formatDate(deal.close_target)}
             </div>
           </div>
         </div>
@@ -106,15 +95,15 @@ export default function DealWorkspace({
             marginTop: "1rem",
           }}
         >
-          <span style={pillStyle}>Momentum: {deal.momentum}</span>
-          <span style={pillStyle}>Time in state: {deal.timeInState}</span>
+          <span style={pillStyle}>Financing: {deal.financing}</span>
+          <span style={pillStyle}>Status: {formatStatus(deal.status)}</span>
         </div>
       </header>
 
       <section style={panelStyle}>
         <div style={sectionTitleStyle}>Deal timeline</div>
         <div style={{ display: "grid", gap: "0.85rem" }}>
-          {deal.timeline.map((event) => (
+          {timeline.map((event) => (
             <div
               key={event.id}
               style={{
@@ -127,12 +116,14 @@ export default function DealWorkspace({
               }}
             >
               <div style={{ color: "#94a3b8", minWidth: "90px" }}>
-                {event.date}
+                {formatDate(event.date)}
               </div>
               <div>
-                <div style={{ fontWeight: 600 }}>{event.title}</div>
+                <div style={{ fontWeight: 600 }}>
+                  {formatStatus(event.type)}
+                </div>
                 <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
-                  {event.detail}
+                  {event.notes}
                 </div>
               </div>
             </div>
@@ -148,87 +139,89 @@ export default function DealWorkspace({
         }}
       >
         <div style={panelStyle}>
-          <div style={sectionTitleStyle}>Momentum & time-in-state</div>
+          <div style={sectionTitleStyle}>Financials</div>
           <div style={{ display: "grid", gap: "0.75rem" }}>
             <div>
               <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
-                Momentum signal
+                List price
               </div>
               <div style={{ fontWeight: 600, marginTop: "0.2rem" }}>
-                {deal.momentum}
+                {formatPrice(deal.list_price)}
               </div>
             </div>
             <div>
               <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
-                Time in current stage
+                Offer price
               </div>
               <div style={{ fontWeight: 600, marginTop: "0.2rem" }}>
-                {deal.timeInState}
+                {formatPrice(deal.offer_price)}
               </div>
             </div>
           </div>
         </div>
 
         <div style={panelStyle}>
-          <div style={sectionTitleStyle}>Risks & confidence</div>
+          <div style={sectionTitleStyle}>Participants</div>
           <div style={{ display: "grid", gap: "0.75rem" }}>
-            {deal.risks.map((risk) => (
-              <div key={risk.id}>
-                <div style={{ fontWeight: 600 }}>{risk.title}</div>
-                <div
-                  style={{
-                    color: "#94a3b8",
-                    marginTop: "0.2rem",
-                    fontSize: "0.85rem",
-                  }}
-                >
-                  Confidence {risk.confidence}% · {risk.mitigation}
-                </div>
+            <div>
+              <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
+                Agent
               </div>
-            ))}
+              <div style={{ fontWeight: 600, marginTop: "0.2rem" }}>
+                {deal.agent}
+              </div>
+            </div>
+            <div>
+              <div style={{ color: "#94a3b8", fontSize: "0.85rem" }}>
+                Buyer
+              </div>
+              <div style={{ fontWeight: 600, marginTop: "0.2rem" }}>
+                {buyer?.name ?? "Unknown"}
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
       <section style={panelStyle}>
-        <div style={sectionTitleStyle}>Suggested interventions</div>
+        <div style={sectionTitleStyle}>Offer details</div>
         <div style={{ display: "grid", gap: "0.85rem" }}>
-          {deal.interventions.map((intervention) => (
-            <div
-              key={intervention.id}
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                gap: "1rem",
-                padding: "0.75rem",
-                borderRadius: "0.75rem",
-                background: "rgba(15, 23, 42, 0.6)",
-                border: "1px solid rgba(148, 163, 184, 0.12)",
-              }}
-            >
-              <div>
-                <div style={{ fontWeight: 600 }}>{intervention.title}</div>
-                <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
-                  Owner: {intervention.owner}
-                </div>
-              </div>
-              <div style={{ color: "#94a3b8" }}>ETA {intervention.eta}</div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      <section style={panelStyle}>
-        <div style={sectionTitleStyle}>Explainability</div>
-        <div style={{ display: "grid", gap: "0.75rem" }}>
-          {deal.explainability.map((signal) => (
-            <div key={signal.id}>
-              <div style={{ fontWeight: 600 }}>{signal.signal}</div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              gap: "1rem",
+              padding: "0.75rem",
+              borderRadius: "0.75rem",
+              background: "rgba(15, 23, 42, 0.6)",
+              border: "1px solid rgba(148, 163, 184, 0.12)",
+            }}
+          >
+            <div>
+              <div style={{ fontWeight: 600 }}>Offer submitted</div>
               <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
-                {signal.impact}
+                {formatDate(deal.offer_date)}
               </div>
             </div>
-          ))}
+            <div style={{ color: "#94a3b8" }}>
+              Close target {formatDate(deal.close_target)}
+            </div>
+          </div>
+          <div
+            style={{
+              padding: "0.75rem",
+              borderRadius: "0.75rem",
+              background: "rgba(15, 23, 42, 0.6)",
+              border: "1px solid rgba(148, 163, 184, 0.12)",
+            }}
+          >
+            <div style={{ fontWeight: 600 }}>Contingencies</div>
+            <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
+              {deal.contingencies.length
+                ? deal.contingencies.join(", ")
+                : "None"}
+            </div>
+          </div>
         </div>
       </section>
     </section>
