@@ -1,28 +1,32 @@
-import CommandCenter from "@/components/workspaces/CommandCenter";
-
-const metricCardStyle: React.CSSProperties = {
-  padding: "0.85rem",
-  borderRadius: "0.75rem",
-  border: "1px solid rgba(148, 163, 184, 0.14)",
-  background: "rgba(15, 23, 42, 0.7)",
-};
+import BuyerWorkspace from "@/components/workspaces/BuyerWorkspace";
+import DealWorkspace from "@/components/workspaces/DealWorkspace";
+import PropertyWorkspace from "@/components/workspaces/PropertyWorkspace";
+import type { ActiveContextItem } from "@/lib/types";
 
 interface WorkspaceProps {
   activeContext: ActiveContextItem;
+  analysisIds: string[];
+  onAddToAnalysis: (propertyId: string) => void;
 }
 
-export default function Workspace({ activeContext }: WorkspaceProps) {
-  return (
-    <main
-      style={{
-        padding: "2rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "1.5rem",
-        background: "linear-gradient(180deg, #0b1017 0%, #0b1220 100%)",
-      }}
-    >
-      <CommandCenter />
-    </main>
-  );
+export default function Workspace({
+  activeContext,
+  analysisIds,
+  onAddToAnalysis,
+}: WorkspaceProps) {
+  switch (activeContext.type) {
+    case "buyer":
+      return <BuyerWorkspace />;
+    case "deal":
+      return <DealWorkspace />;
+    case "property":
+      return (
+        <PropertyWorkspace
+          analysisIds={analysisIds}
+          onAddToAnalysis={onAddToAnalysis}
+        />
+      );
+    default:
+      return null;
+  }
 }

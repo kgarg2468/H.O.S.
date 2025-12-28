@@ -2,10 +2,13 @@
 
 import { useMemo, useState } from "react";
 import ContextRail from "@/components/os/ContextRail";
-import IntelligenceRail, {
-  type IntelligenceNotification,
-} from "@/components/os/IntelligenceRail";
+import IntelligenceRail from "@/components/os/IntelligenceRail";
 import Workspace from "@/components/os/Workspace";
+import AnalysisTray, {
+  type Property as AnalysisProperty,
+} from "@/components/workspaces/AnalysisTray";
+import type { Property as ListingProperty } from "@/components/workspaces/PropertyWorkspace";
+import propertiesData from "@/data/properties.json";
 import type { ActiveContextItem, RailSection } from "@/lib/types";
 
 const sections: RailSection[] = [
@@ -197,6 +200,27 @@ const formatTimestamp = () =>
     minute: "2-digit",
   });
 
+const properties = propertiesData as ListingProperty[];
+
+const formatPrice = (price: number) =>
+  `$${price.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
+
+const toAnalysisProperty = (property: ListingProperty): AnalysisProperty => {
+  const capRateValue = 4.8 + property.bedrooms * 0.2 + property.bathrooms * 0.1;
+  const occupancyValue = Math.min(98, 86 + property.bedrooms * 3);
+  const noiValue = Math.round((property.price * capRateValue) / 100);
+
+  return {
+    id: property.id,
+    name: property.neighborhood,
+    address: `${property.address}, ${property.city}`,
+    price: formatPrice(property.price),
+    capRate: `${capRateValue.toFixed(1)}%`,
+    occupancy: `${occupancyValue}%`,
+    noi: formatPrice(noiValue),
+  };
+};
+
 export default function Home() {
   const allItems = useMemo(
     () => sections.flatMap((section) => section.items),
@@ -205,13 +229,42 @@ export default function Home() {
   const [activeContext, setActiveContext] = useState<ActiveContextItem>(
     allItems[0]
   );
+  const [analysisTrayIds, setAnalysisTrayIds] = useState<string[]>([]);
+
+  const analysisProperties = useMemo(
+    () =>
+      analysisTrayIds
+        .map((propertyId) =>
+          properties.find((property) => property.id === propertyId)
+        )
+        .filter((property): property is ListingProperty => Boolean(property))
+        .map((property) => toAnalysisProperty(property)),
+    [analysisTrayIds]
+  );
+
+  const handleAddToAnalysis = (propertyId: string) => {
+    setAnalysisTrayIds((prev) => {
+      if (prev.includes(propertyId) || prev.length >= 4) {
+        return prev;
+      }
+      return [...prev, propertyId];
+    });
+  };
+
+  const handleRemoveFromAnalysis = (propertyId: string) => {
+    setAnalysisTrayIds((prev) => prev.filter((id) => id !== propertyId));
+  };
+
+  const showAnalysisTray = activeContext.type === "property";
 
   return (
     <div
       style={{
         minHeight: "100vh",
         display: "grid",
-        gridTemplateColumns: "260px minmax(0, 1fr) 300px",
+        gridTemplateColumns: showAnalysisTray
+          ? "260px minmax(0, 1fr) 360px 300px"
+          : "260px minmax(0, 1fr) 300px",
         alignItems: "stretch",
         background: "#0b0f14",
         color: "#e2e8f0",
@@ -222,7 +275,27 @@ export default function Home() {
         activeItemId={activeContext.id}
         onSelect={setActiveContext}
       />
-      <Workspace activeContext={activeContext} />
+      <Workspace
+        activeContext={activeContext}
+        analysisIds={analysisTrayIds}
+        onAddToAnalysis={handleAddToAnalysis}
+      />
+      {showAnalysisTray ? (
+        <aside
+          style={{
+            padding: "1.75rem",
+            background: "#0d1320",
+            borderLeft: "1px solid rgba(148, 163, 184, 0.12)",
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <AnalysisTray
+            selectedProperties={analysisProperties}
+            onRemove={handleRemoveFromAnalysis}
+          />
+        </aside>
+      ) : null}
       <IntelligenceRail activeContext={activeContext} />
     </div>
   );

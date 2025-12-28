@@ -4,7 +4,7 @@ import type React from "react";
 import { useMemo, useState } from "react";
 import propertiesData from "@/data/properties.json";
 
-interface Property {
+export interface Property {
   id: string;
   address: string;
   city: string;
@@ -52,11 +52,18 @@ const formatType = (type: string) =>
     .map((segment) => segment[0]?.toUpperCase() + segment.slice(1))
     .join(" ");
 
-export default function PropertyWorkspace() {
+interface PropertyWorkspaceProps {
+  analysisIds: string[];
+  onAddToAnalysis: (propertyId: string) => void;
+}
+
+export default function PropertyWorkspace({
+  analysisIds,
+  onAddToAnalysis,
+}: PropertyWorkspaceProps) {
   const [selectedId, setSelectedId] = useState<string>(
     properties[0]?.id ?? ""
   );
-  const [analysisIds, setAnalysisIds] = useState<string[]>([]);
 
   const selectedProperty = useMemo(
     () => properties.find((property) => property.id === selectedId),
@@ -80,6 +87,7 @@ export default function PropertyWorkspace() {
   }
 
   const isInAnalysis = analysisIds.includes(selectedProperty.id);
+  const isAtLimit = analysisIds.length >= 4;
 
   const detailChips = [
     {
@@ -144,25 +152,34 @@ export default function PropertyWorkspace() {
         <button
           type="button"
           onClick={() => {
-            setAnalysisIds((prev) =>
-              prev.includes(selectedProperty.id)
-                ? prev.filter((id) => id !== selectedProperty.id)
-                : [...prev, selectedProperty.id]
-            );
+            if (!isInAnalysis && !isAtLimit) {
+              onAddToAnalysis(selectedProperty.id);
+            }
           }}
+          disabled={!isInAnalysis && isAtLimit}
           style={{
             padding: "0.6rem 1.1rem",
             borderRadius: "999px",
             border: "1px solid rgba(59, 130, 246, 0.5)",
             background: isInAnalysis
               ? "rgba(59, 130, 246, 0.25)"
-              : "rgba(15, 23, 42, 0.8)",
-            color: isInAnalysis ? "#e0f2fe" : "#bfdbfe",
+              : isAtLimit
+                ? "rgba(15, 23, 42, 0.4)"
+                : "rgba(15, 23, 42, 0.8)",
+            color: isInAnalysis
+              ? "#e0f2fe"
+              : isAtLimit
+                ? "#64748b"
+                : "#bfdbfe",
             fontWeight: 600,
-            cursor: "pointer",
+            cursor: !isInAnalysis && isAtLimit ? "not-allowed" : "pointer",
           }}
         >
-          {isInAnalysis ? "Added to analysis" : "Add to analysis"}
+          {isInAnalysis
+            ? "Added to analysis"
+            : isAtLimit
+              ? "Analysis tray full"
+              : "Add to analysis"}
         </button>
       </header>
 
