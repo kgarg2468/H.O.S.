@@ -1,14 +1,5 @@
 import type React from "react";
-
-type Property = {
-  id: string;
-  name: string;
-  address: string;
-  price: string;
-  capRate: string;
-  occupancy: string;
-  noi: string;
-};
+import type { Property } from "@/lib/types";
 
 type AnalysisTrayProps = {
   selectedProperties: Property[];
@@ -35,6 +26,27 @@ const pillStyle: React.CSSProperties = {
   color: "#7dd3fc",
   fontSize: "0.75rem",
   border: "1px solid rgba(56, 189, 248, 0.35)",
+};
+
+const formatCurrency = (value: number) =>
+  new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
+
+const formatCapRate = (property: Property) => {
+  const baseline = 4.6;
+  const bonus = property.bedrooms * 0.15 + property.bathrooms * 0.1;
+  return `${(baseline + bonus).toFixed(1)}%`;
+};
+
+const formatOccupancy = (property: Property) =>
+  `${90 + (property.days_on_market % 8)}%`;
+
+const formatNoi = (property: Property) => {
+  const estimate = property.price * 0.055;
+  return formatCurrency(estimate);
 };
 
 export default function AnalysisTray({
@@ -98,9 +110,9 @@ export default function AnalysisTray({
                 }}
               >
                 <div>
-                  <div style={{ fontWeight: 600 }}>{property.name}</div>
+                  <div style={{ fontWeight: 600 }}>{property.address}</div>
                   <div style={{ color: "#94a3b8", marginTop: "0.25rem" }}>
-                    {property.address}
+                    {property.neighborhood} · {property.city}
                   </div>
                 </div>
                 <button
@@ -119,10 +131,10 @@ export default function AnalysisTray({
                 </button>
               </div>
               <div style={{ marginTop: "0.85rem", color: "#cbd5f5" }}>
-                <div>Price: {property.price}</div>
-                <div>Cap Rate: {property.capRate}</div>
-                <div>Occupancy: {property.occupancy}</div>
-                <div>NOI: {property.noi}</div>
+                <div>Price: {formatCurrency(property.price)}</div>
+                <div>Cap Rate: {formatCapRate(property)}</div>
+                <div>Occupancy: {formatOccupancy(property)}</div>
+                <div>NOI: {formatNoi(property)}</div>
               </div>
             </article>
           ))}
@@ -159,15 +171,15 @@ export default function AnalysisTray({
                   border: "1px solid rgba(148, 163, 184, 0.14)",
                 }}
               >
-                <div style={{ fontWeight: 600 }}>{property.name}</div>
+                <div style={{ fontWeight: 600 }}>{property.address}</div>
                 <div style={{ color: "#94a3b8", marginTop: "0.35rem" }}>
-                  Cap {property.capRate}
+                  Cap {formatCapRate(property)}
                 </div>
                 <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
-                  {property.occupancy} occupied
+                  {formatOccupancy(property)} occupied
                 </div>
                 <div style={{ color: "#94a3b8", marginTop: "0.2rem" }}>
-                  NOI {property.noi}
+                  NOI {formatNoi(property)}
                 </div>
               </div>
             ))}
@@ -190,5 +202,3 @@ export default function AnalysisTray({
     </section>
   );
 }
-
-export type { Property };

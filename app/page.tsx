@@ -182,14 +182,6 @@ const sections: RailSection[] = [
     }),
   },
   {
-    title: "Buyers",
-    items: buyerItems,
-  },
-  {
-    title: "Deals",
-    items: dealItems,
-  },
-  {
     title: "Properties",
     items: properties.map((property) => ({
       id: property.id,
