@@ -6,6 +6,11 @@
     "fit_score": 92,
     "top_properties": ["p-2001", "p-2003", "p-2008"],
     "rationale": "Prioritizes townhome/single-family with garage and office space near walkable amenities.",
+    "explainability": [
+      "Garage and dedicated office are present in the top matches.",
+      "Walkable neighborhoods align with recent search filters.",
+      "Budget range supports townhome inventory in target areas."
+    ],
     "next_actions": ["Negotiate inspection credit", "Confirm lender appraisal timeline"]
   },
   {
@@ -15,6 +20,10 @@
     "fit_score": 88,
     "top_properties": ["p-2006", "p-2002"],
     "rationale": "Condo-focused with building amenities and transit proximity; closed SLU unit meets requirements.",
+    "explainability": [
+      "High-rise amenities match the condo-first preference.",
+      "Transit proximity is within the requested commute radius."
+    ],
     "next_actions": ["Schedule final walkthrough recap", "Share HOA move-in packet"]
   },
   {
@@ -26,6 +35,11 @@
     "fit_score": 84,
     "top_properties": ["p-2007", "p-2003"],
     "rationale": "Needs four bedrooms and yard; Phinney Ridge listing best matches space and commute.",
+    "explainability": [
+      "Four-bedroom inventory is scarce; top match meets space requirement.",
+      "Yard size and commute time fit the short list.",
+      "Recent engagement dip flags a follow-up need."
+    ],
     "next_actions": ["Arrange second tour", "Pull school district comparisons"]
   },
   {
@@ -35,6 +49,10 @@
     "fit_score": 79,
     "top_properties": ["p-2005", "p-2008"],
     "rationale": "Starter-home focus with updated kitchen and yard; West Seattle home aligns with budget ceiling.",
+    "explainability": [
+      "Updated kitchen and yard align with must-haves.",
+      "West Seattle pricing sits within the current ceiling."
+    ],
     "next_actions": ["Respond to seller counter", "Coordinate inspection window"]
   },
   {
@@ -44,6 +62,11 @@
     "fit_score": 86,
     "top_properties": ["p-2004", "p-2002"],
     "rationale": "Downsizing to low-maintenance condo with elevator and trail access; Green Lake unit is best fit.",
+    "explainability": [
+      "Elevator access is available in the top match.",
+      "Trail proximity supports daily walking preference.",
+      "Low-maintenance HOA fits downsizing goal."
+    ],
     "next_actions": ["Draft offer strategy", "Verify HOA reserves"]
   },
   {
@@ -54,6 +77,11 @@
     "fit_score": 81,
     "top_properties": ["p-2003", "p-2001"],
     "rationale": "Investor seeking rental potential and parking; Ballard home offers basement for ADU potential.",
+    "explainability": [
+      "ADU potential drives projected rental upside.",
+      "Parking and basement access fit investor criteria.",
+      "Timing pressure suggests action within seven days."
+    ],
     "next_actions": ["Prepare rental income worksheet", "Confirm zoning allowances"]
   }
 ]

@@ -61,60 +61,29 @@ export default function DealWorkspace({
   property,
   events,
 }: DealWorkspaceProps) {
-  const [pulse, setPulse] = useState(0);
-
-  useEffect(() => {
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const schedule = () => {
-      timeoutId = setTimeout(() => {
-        setPulse((current) => current + 1);
-        schedule();
-      }, getRefreshDelayMs());
-    };
-
-    schedule();
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
-  }, []);
-
-  const timeline = useMemo(() => {
-    const baseTimeline = [...events].sort(
-      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-    );
-
-    if (baseTimeline.length === 0) {
-      return baseTimeline;
-    }
-
-    const pulseUpdates = [
-      {
-        type: "inspection_update",
-        notes: "Inspection notes uploaded; reviewing contractor follow-ups.",
-      },
-      {
-        type: "offer_revision",
-        notes: "Seller countered with updated closing window.",
-      },
-      {
-        type: "title_check",
-        notes: "Title review in progress; awaiting escrow feedback.",
-      },
-    ];
-
-    const pulseUpdate = pulseUpdates[pulse % pulseUpdates.length];
-    const pulseEvent: Event = {
-      ...baseTimeline[0],
-      id: `${baseTimeline[0].id}-pulse-${pulse}`,
-      date: new Date().toISOString().slice(0, 10),
-      type: pulseUpdate.type,
-      notes: pulseUpdate.notes,
-    };
-
-    return [pulseEvent, ...baseTimeline.slice(0, 3)];
-  }, [events, pulse]);
+  const timeline = [...events].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  const explainability = [
+    deal.offer_price && deal.list_price
+      ? `Offer ${formatPrice(deal.offer_price)} is ${
+          deal.offer_price >= deal.list_price ? "at/above" : "below"
+        } list ${formatPrice(deal.list_price)}.`
+      : "Offer price pending to validate pricing signal.",
+    deal.contingencies.length > 0
+      ? `Open contingencies: ${deal.contingencies
+          .map(formatStatus)
+          .join(", ")}.`
+      : "No contingencies flagged on the contract.",
+    `Financing type: ${formatStatus(deal.financing)}.`,
+    timeline[0]
+      ? `Latest milestone: ${formatStatus(timeline[0].type)} (${
+          timeline[0].outcome
+        }).`
+      : "No recent timeline events logged.",
+  ]
+    .filter(Boolean)
+    .slice(0, 4);
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header style={panelStyle}>
@@ -155,6 +124,22 @@ export default function DealWorkspace({
           <span style={pillStyle}>Status: {formatStatus(deal.status)}</span>
         </div>
       </header>
+
+      <section style={panelStyle}>
+        <div style={sectionTitleStyle}>Why the OS thinks this</div>
+        <ul
+          style={{
+            color: "#94a3b8",
+            lineHeight: 1.6,
+            paddingLeft: "1.1rem",
+            margin: 0,
+          }}
+        >
+          {explainability.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      </section>
 
       <section style={panelStyle}>
         <div style={sectionTitleStyle}>Deal timeline</div>

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type React from "react";
 import CommandCenter from "@/components/workspaces/CommandCenter";
 import BuyerWorkspace from "@/components/workspaces/BuyerWorkspace";
@@ -25,9 +28,20 @@ const properties = propertiesData as Property[];
 
 interface WorkspaceProps {
   activeContext: ActiveContext;
+  analysisIds: string[];
+  onToggleAnalysis: (propertyId: string) => void;
+  onRemoveAnalysis: (propertyId: string) => void;
 }
 
 export default function Workspace({ activeContext }: WorkspaceProps) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    setIsVisible(false);
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, [activeContext.id, activeContext.type]);
+
   const buyer = buyers.find((item) => item.id === activeContext.id);
   const deal = deals.find((item) => item.id === activeContext.id);
   const property = properties.find((item) => item.id === activeContext.id);
@@ -42,16 +56,22 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
     ? events.filter((event) => event.deal_id === deal.id)
     : [];
 
+  const contextKey = `${activeContext.type}-${activeContext.id}`;
   let content: React.ReactNode = null;
 
   switch (activeContext.type) {
     case "command":
-      content = <CommandCenter />;
+      content = <CommandCenter key={contextKey} />;
       break;
     case "buyer":
       if (buyer) {
         content = (
-          <BuyerWorkspace buyer={buyer} events={buyerEvents} insight={insight} />
+          <BuyerWorkspace
+            key={contextKey}
+            buyer={buyer}
+            events={buyerEvents}
+            insight={insight}
+          />
         );
       }
       break;
@@ -66,6 +86,7 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
 
         content = (
           <DealWorkspace
+            key={contextKey}
             deal={deal}
             buyer={relatedBuyer}
             property={relatedProperty}
@@ -77,12 +98,18 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
     case "property":
       if (property) {
         content = (
-          <PropertyWorkspace property={property} properties={properties} />
+          <PropertyWorkspace
+            property={property}
+            properties={properties}
+            analysisIds={analysisIds}
+            onToggleAnalysis={onToggleAnalysis}
+            onRemoveAnalysis={onRemoveAnalysis}
+          />
         );
       }
       break;
     default:
-      content = <CommandCenter />;
+      content = <CommandCenter key={contextKey} />;
   }
 
   return (
@@ -94,6 +121,10 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
         gap: "1.5rem",
         background: "linear-gradient(180deg, #0b1017 0%, #0b1220 100%)",
         minHeight: "100vh",
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(6px)",
+        transition: "opacity 200ms ease, transform 200ms ease",
+        willChange: "opacity, transform",
       }}
     >
       {content ?? <CommandCenter />}

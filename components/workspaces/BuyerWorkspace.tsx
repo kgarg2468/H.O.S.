@@ -136,6 +136,14 @@ export default function BuyerWorkspace({
           "Send new listings matching preferred neighborhoods.",
           "Review updated lender pre-approval timeline.",
         ];
+  const explainability =
+    insight?.explainability && insight.explainability.length > 0
+      ? insight.explainability.slice(0, 4)
+      : [
+          `${buyer.preapproved ? "Pre-approved" : "Pending pre-approval"} financing shapes readiness.`,
+          `Top neighborhoods: ${buyer.preferred_locations.slice(0, 2).join(", ")}.`,
+          `${buyer.bedrooms_min}+ beds and ${buyer.bathrooms_min}+ baths set the search floor.`,
+        ].slice(0, 4);
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "1.75rem" }}>
       <header style={panelStyle}>
@@ -258,6 +266,17 @@ export default function BuyerWorkspace({
               </p>
             </div>
           </div>
+        </div>
+
+        <div style={panelStyle}>
+          <div style={{ fontWeight: 600, marginBottom: "0.75rem" }}>
+            Why the OS thinks this
+          </div>
+          <ul style={{ ...mutedTextStyle, paddingLeft: "1.1rem", margin: 0 }}>
+            {explainability.map((reason) => (
+              <li key={reason}>{reason}</li>
+            ))}
+          </ul>
         </div>
 
         <div
