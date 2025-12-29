@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import type React from "react";
 import type { ActiveContext, RailSection } from "@/lib/types";
 
@@ -16,6 +19,8 @@ const itemStyle: React.CSSProperties = {
   border: "1px solid rgba(148, 163, 184, 0.12)",
   marginBottom: "0.5rem",
   fontSize: "0.9rem",
+  transition:
+    "background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease",
 };
 
 const itemMetaStyle: React.CSSProperties = {
@@ -28,6 +33,14 @@ const activeItemStyle: React.CSSProperties = {
   border: "1px solid rgba(59, 130, 246, 0.55)",
   background: "rgba(59, 130, 246, 0.15)",
   color: "#e0f2fe",
+  boxShadow: "0 8px 18px rgba(59, 130, 246, 0.18)",
+};
+
+const hoverItemStyle: React.CSSProperties = {
+  border: "1px solid rgba(148, 163, 184, 0.4)",
+  background: "rgba(148, 163, 184, 0.12)",
+  transform: "translateY(-1px)",
+  boxShadow: "0 10px 20px rgba(15, 23, 42, 0.25)",
 };
 
 interface ContextRailProps {
@@ -41,6 +54,8 @@ export default function ContextRail({
   activeItemId,
   onSelect,
 }: ContextRailProps) {
+  const [hoveredItemId, setHoveredItemId] = useState<string | null>(null);
+
   return (
     <aside
       style={{
@@ -63,23 +78,31 @@ export default function ContextRail({
       {sections.map((section) => (
         <div key={section.title}>
           <div style={headerStyle}>{section.title}</div>
-          {section.items.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => onSelect(item)}
-              style={{
-                ...itemStyle,
-                ...(item.id === activeItemId ? activeItemStyle : null),
-                textAlign: "left",
-                cursor: "pointer",
-                width: "100%",
-              }}
-            >
-              <div style={{ fontWeight: 600 }}>{item.title}</div>
-              <div style={itemMetaStyle}>{item.status}</div>
-            </button>
-          ))}
+          {section.items.map((item) => {
+            const isActive = item.id === activeItemId;
+            const isHovered = item.id === hoveredItemId;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item)}
+                onMouseEnter={() => setHoveredItemId(item.id)}
+                onMouseLeave={() => setHoveredItemId(null)}
+                style={{
+                  ...itemStyle,
+                  ...(isActive ? activeItemStyle : null),
+                  ...(isHovered && !isActive ? hoverItemStyle : null),
+                  textAlign: "left",
+                  cursor: "pointer",
+                  width: "100%",
+                }}
+              >
+                <div style={{ fontWeight: 600 }}>{item.title}</div>
+                <div style={itemMetaStyle}>{item.status}</div>
+              </button>
+            );
+          })}
         </div>
       ))}
     </aside>
