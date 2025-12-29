@@ -2,7 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import dealsData from "@/data/deals.json";
+import eventsData from "@/data/events.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -70,6 +82,12 @@ type InsightRecord = {
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
+
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const events = eventsData as Event[];
+const insights = insightsData as Insight[];
+const properties = propertiesData as Property[];
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -302,7 +320,7 @@ const buildPropertyCards = (propertyId: string) => {
   ];
 };
 
-const buildCardsForContext = (activeContext: ActiveContextItem) => {
+const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
       return buildCommandCards();
@@ -320,7 +338,34 @@ const buildCardsForContext = (activeContext: ActiveContextItem) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
-  const cards = buildCardsForContext(activeContext);
+  const [dismissedInsightIds, setDismissedInsightIds] = useState<string[]>([]);
+
+  const visibleInsights = useMemo<InsightRecord[]>(
+    () =>
+      insights
+        .filter((insight) => insight.signal_level === "high")
+        .map((insight) => ({
+          id: insight.id,
+          buyer_name: buyers.find((buyer) => buyer.id === insight.buyer_id)?.name,
+          signal_level: insight.signal_level,
+          signal_summary: `Fit score ${insight.fit_score} · ${insight.rationale}`,
+        }))
+        .filter((insight) => !dismissedInsightIds.includes(insight.id)),
+    [dismissedInsightIds]
+  );
+
+  const handleDismiss = (insightId: string) => {
+    setDismissedInsightIds((prev) =>
+      prev.includes(insightId)
+        ? prev
+        : [...prev, insightId]
+    );
+  };
+
+  const cards = useMemo(
+    () => buildCardsForContext(activeContext),
+    [activeContext]
+  );
 
   return (
     <aside

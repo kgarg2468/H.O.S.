@@ -18,6 +18,23 @@ export default function HomeClient({ sections }: HomeClientProps) {
   const [activeContext, setActiveContext] = useState<ActiveContextItem>(
     allItems[0]
   );
+  const [analysisIds, setAnalysisIds] = useState<string[]>([]);
+
+  const handleToggleAnalysis = (propertyId: string) => {
+    setAnalysisIds((prev) => {
+      if (prev.includes(propertyId)) {
+        return prev.filter((id) => id !== propertyId);
+      }
+      if (prev.length >= 4) {
+        return prev;
+      }
+      return [...prev, propertyId];
+    });
+  };
+
+  const handleRemoveAnalysis = (propertyId: string) => {
+    setAnalysisIds((prev) => prev.filter((id) => id !== propertyId));
+  };
 
   return (
     <div
@@ -35,7 +52,12 @@ export default function HomeClient({ sections }: HomeClientProps) {
         activeItemId={activeContext.id}
         onSelect={setActiveContext}
       />
-      <Workspace activeContext={activeContext} />
+      <Workspace
+        activeContext={activeContext}
+        analysisIds={analysisIds}
+        onToggleAnalysis={handleToggleAnalysis}
+        onRemoveAnalysis={handleRemoveAnalysis}
+      />
       <IntelligenceRail activeContext={activeContext} />
     </div>
   );
