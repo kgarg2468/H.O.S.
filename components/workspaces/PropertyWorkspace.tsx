@@ -42,6 +42,7 @@ export default function PropertyWorkspace({
   properties,
 }: PropertyWorkspaceProps) {
   const [analysisIds, setAnalysisIds] = useState<string[]>([]);
+  const analysisLimit = 3;
 
   const comparableProperties = useMemo(() => {
     return properties
@@ -57,6 +58,7 @@ export default function PropertyWorkspace({
   );
 
   const isInAnalysis = analysisIds.includes(property.id);
+  const isAtLimit = analysisIds.length >= analysisLimit;
 
   const detailChips = [
     {
@@ -202,16 +204,48 @@ export default function PropertyWorkspace({
             style={{
               height: "190px",
               borderRadius: "0.9rem",
-              border: "1px dashed rgba(148, 163, 184, 0.4)",
+              border: "1px solid rgba(148, 163, 184, 0.2)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
               background:
                 "linear-gradient(135deg, rgba(30, 41, 59, 0.85), rgba(15, 23, 42, 0.85))",
               color: "#94a3b8",
+              position: "relative",
+              overflow: "hidden",
             }}
           >
-            Map placeholder · {selectedProperty.neighborhood}
+            <div
+              style={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "radial-gradient(circle at 30% 30%, rgba(56, 189, 248, 0.12), transparent 45%), radial-gradient(circle at 70% 60%, rgba(59, 130, 246, 0.18), transparent 40%)",
+              }}
+            />
+            <div
+              style={{
+                position: "absolute",
+                top: "35%",
+                left: "52%",
+                width: "16px",
+                height: "16px",
+                borderRadius: "999px",
+                background: "rgba(56, 189, 248, 0.9)",
+                border: "3px solid rgba(15, 23, 42, 0.9)",
+                boxShadow: "0 0 12px rgba(56, 189, 248, 0.6)",
+                transform: "translate(-50%, -50%)",
+              }}
+            />
+            <div style={{ position: "relative", textAlign: "center" }}>
+              <div style={{ fontWeight: 600, color: "#e0f2fe" }}>
+                {property.neighborhood}
+              </div>
+              <div style={{ fontSize: "0.85rem", marginTop: "0.35rem" }}>
+                Lat {property.latitude.toFixed(4)} · Lng{" "}
+                {property.longitude.toFixed(4)}
+              </div>
+            </div>
           </div>
         </div>
 

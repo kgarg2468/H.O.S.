@@ -61,6 +61,8 @@ export interface Property {
   status: string;
   listed_at: string;
   days_on_market: number;
+  latitude: number;
+  longitude: number;
 }
 
 export interface Event {

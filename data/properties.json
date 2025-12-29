@@ -11,10 +11,17 @@
     "bathrooms": 2.5,
     "sqft": 1680,
     "price": 635000,
-    "features": ["garage", "roof deck", "home office nook", "fenced patio"],
+    "features": [
+      "garage",
+      "roof deck",
+      "home office nook",
+      "fenced patio"
+    ],
     "status": "under_contract",
     "listed_at": "2024-09-18",
-    "days_on_market": 26
+    "days_on_market": 26,
+    "latitude": 47.6291,
+    "longitude": -122.3184
   },
   {
     "id": "p-2002",
@@ -28,10 +35,17 @@
     "bathrooms": 2,
     "sqft": 980,
     "price": 495000,
-    "features": ["secure parking", "gym", "in-unit laundry", "city views"],
+    "features": [
+      "secure parking",
+      "gym",
+      "in-unit laundry",
+      "city views"
+    ],
     "status": "available",
     "listed_at": "2024-10-02",
-    "days_on_market": 12
+    "days_on_market": 12,
+    "latitude": 47.6149,
+    "longitude": -122.3441
   },
   {
     "id": "p-2003",
@@ -45,10 +59,17 @@
     "bathrooms": 2.5,
     "sqft": 2140,
     "price": 725000,
-    "features": ["updated kitchen", "finished basement", "fenced yard", "detached garage"],
+    "features": [
+      "updated kitchen",
+      "finished basement",
+      "fenced yard",
+      "detached garage"
+    ],
     "status": "available",
     "listed_at": "2024-09-25",
-    "days_on_market": 19
+    "days_on_market": 19,
+    "latitude": 47.6752,
+    "longitude": -122.3893
   },
   {
     "id": "p-2004",
@@ -62,10 +83,17 @@
     "bathrooms": 2,
     "sqft": 1105,
     "price": 555000,
-    "features": ["elevator", "lake views", "secure parking", "in-unit laundry"],
+    "features": [
+      "elevator",
+      "lake views",
+      "secure parking",
+      "in-unit laundry"
+    ],
     "status": "available",
     "listed_at": "2024-10-05",
-    "days_on_market": 9
+    "days_on_market": 9,
+    "latitude": 47.6856,
+    "longitude": -122.3275
   },
   {
     "id": "p-2005",
@@ -79,10 +107,17 @@
     "bathrooms": 2,
     "sqft": 1560,
     "price": 575000,
-    "features": ["updated kitchen", "backyard", "covered deck", "off-street parking"],
+    "features": [
+      "updated kitchen",
+      "backyard",
+      "covered deck",
+      "off-street parking"
+    ],
     "status": "negotiating",
     "listed_at": "2024-09-28",
-    "days_on_market": 16
+    "days_on_market": 16,
+    "latitude": 47.5623,
+    "longitude": -122.3938
   },
   {
     "id": "p-2006",
@@ -96,10 +131,17 @@
     "bathrooms": 1,
     "sqft": 740,
     "price": 455000,
-    "features": ["gym", "secure parking", "in-unit laundry", "concierge"],
+    "features": [
+      "gym",
+      "secure parking",
+      "in-unit laundry",
+      "concierge"
+    ],
     "status": "closed",
     "listed_at": "2024-08-30",
-    "days_on_market": 34
+    "days_on_market": 34,
+    "latitude": 47.6235,
+    "longitude": -122.3376
   },
   {
     "id": "p-2007",
@@ -113,10 +155,17 @@
     "bathrooms": 3,
     "sqft": 2325,
     "price": 845000,
-    "features": ["finished basement", "large backyard", "garage", "walkable to transit"],
+    "features": [
+      "finished basement",
+      "large backyard",
+      "garage",
+      "walkable to transit"
+    ],
     "status": "touring",
     "listed_at": "2024-09-20",
-    "days_on_market": 24
+    "days_on_market": 24,
+    "latitude": 47.6851,
+    "longitude": -122.3475
   },
   {
     "id": "p-2008",
@@ -130,9 +179,16 @@
     "bathrooms": 2,
     "sqft": 1710,
     "price": 610000,
-    "features": ["finished basement", "backyard", "off-street parking", "near transit"],
+    "features": [
+      "finished basement",
+      "backyard",
+      "off-street parking",
+      "near transit"
+    ],
     "status": "available",
     "listed_at": "2024-10-01",
-    "days_on_market": 13
+    "days_on_market": 13,
+    "latitude": 47.6974,
+    "longitude": -122.3176
   }
 ]
