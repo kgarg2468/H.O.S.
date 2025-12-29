@@ -31,7 +31,7 @@ export default function HomeClient({ sections }: HomeClientProps) {
     [allItems]
   );
   const [activeContext, setActiveContext] = useState<ActiveContextItem>(
-    allItems[0]
+    defaultContext
   );
   const [isPaletteOpen, setPaletteOpen] = useState(false);
 

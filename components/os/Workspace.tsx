@@ -56,16 +56,22 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
     ? events.filter((event) => event.deal_id === deal.id)
     : [];
 
+  const contextKey = `${activeContext.type}-${activeContext.id}`;
   let content: React.ReactNode = null;
 
   switch (activeContext.type) {
     case "command":
-      content = <CommandCenter />;
+      content = <CommandCenter key={contextKey} />;
       break;
     case "buyer":
       if (buyer) {
         content = (
-          <BuyerWorkspace buyer={buyer} events={buyerEvents} insight={insight} />
+          <BuyerWorkspace
+            key={contextKey}
+            buyer={buyer}
+            events={buyerEvents}
+            insight={insight}
+          />
         );
       }
       break;
@@ -80,6 +86,7 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
 
         content = (
           <DealWorkspace
+            key={contextKey}
             deal={deal}
             buyer={relatedBuyer}
             property={relatedProperty}
@@ -102,7 +109,7 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
       }
       break;
     default:
-      content = <CommandCenter />;
+      content = <CommandCenter key={contextKey} />;
   }
 
   return (

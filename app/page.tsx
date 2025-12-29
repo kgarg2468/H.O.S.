@@ -40,6 +40,18 @@ const formatBathrooms = (value: number): string =>
 
 const sections: RailSection[] = [
   {
+    title: "Command",
+    items: [
+      {
+        id: "command-center",
+        type: "command",
+        title: "Command Center",
+        description: "Live signal routing for active revenue moments.",
+        status: "Streaming",
+      },
+    ],
+  },
+  {
     title: "Buyers",
     items: buyers.map((buyer) => {
       const insight = insightsByBuyer.get(buyer.id);
