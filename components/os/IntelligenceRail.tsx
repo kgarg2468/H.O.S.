@@ -2,7 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import buyers from "@/data/buyers.json";
+import deals from "@/data/deals.json";
+import events from "@/data/events.json";
+import insights from "@/data/insights.json";
+import properties from "@/data/properties.json";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -71,6 +83,14 @@ interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
 
+const buyersData = buyers as Buyer[];
+const dealsData = deals as Deal[];
+const eventsData = events as Event[];
+const insightsData = insights as (Insight & InsightRecord)[];
+const propertiesData = properties as Property[];
+
+const buyersById = new Map(buyersData.map((buyer) => [buyer.id, buyer]));
+
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
   currency: "USD",
@@ -93,14 +113,14 @@ const titleCase = (value: string) =>
     .join(" ");
 
 const buildCommandCards = () => {
-  const recentEvents = [...events]
+  const recentEvents = [...eventsData]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3)
     .map(
       (event) =>
         `${formatDate(event.date)} · ${titleCase(event.type)} — ${event.notes}`
     );
-  const priorities = insights
+  const priorities = insightsData
     .flatMap((insight) => insight.next_actions)
     .slice(0, 3);
 
@@ -123,9 +143,9 @@ const buildCommandCards = () => {
 };
 
 const buildBuyerCards = (buyerId: string) => {
-  const buyer = buyers.find((item) => item.id === buyerId);
-  const insight = insights.find((item) => item.buyer_id === buyerId);
-  const buyerEvents = events
+  const buyer = buyersData.find((item) => item.id === buyerId);
+  const insight = insightsData.find((item) => item.buyer_id === buyerId);
+  const buyerEvents = eventsData
     .filter((event) => event.buyer_id === buyerId)
     .sort((a, b) => b.date.localeCompare(a.date));
   const riskSignals = [
@@ -178,8 +198,8 @@ const buildBuyerCards = (buyerId: string) => {
 };
 
 const buildDealCards = (dealId: string) => {
-  const deal = deals.find((item) => item.id === dealId);
-  const dealEvents = events
+  const deal = dealsData.find((item) => item.id === dealId);
+  const dealEvents = eventsData
     .filter((event) => event.deal_id === dealId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -235,7 +255,7 @@ const buildDealCards = (dealId: string) => {
 };
 
 const buildPropertyCards = (propertyId: string) => {
-  const property = properties.find((item) => item.id === propertyId);
+  const property = propertiesData.find((item) => item.id === propertyId);
   if (!property) {
     return [
       {
@@ -249,7 +269,7 @@ const buildPropertyCards = (propertyId: string) => {
     ];
   }
 
-  const comps = properties
+  const comps = propertiesData
     .filter(
       (item) =>
         item.id !== property.id &&
@@ -263,7 +283,7 @@ const buildPropertyCards = (propertyId: string) => {
     )
     .slice(0, 3);
 
-  const propertyEvents = events
+  const propertyEvents = eventsData
     .filter((event) => event.property_id === propertyId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -302,7 +322,7 @@ const buildPropertyCards = (propertyId: string) => {
   ];
 };
 
-const buildCardsForContext = (activeContext: ActiveContextItem) => {
+const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
       return buildCommandCards();
@@ -320,7 +340,34 @@ const buildCardsForContext = (activeContext: ActiveContextItem) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
-  const cards = buildCardsForContext(activeContext);
+  const cards = useMemo(
+    () => buildCardsForContext(activeContext),
+    [activeContext]
+  );
+  const [dismissedInsightIds, setDismissedInsightIds] = useState<string[]>([]);
+  const highSignalInsights = useMemo(
+    () =>
+      insightsData
+        .filter((insight) => insight.signal_level === "high")
+        .map((insight) => ({
+          ...insight,
+          buyer_name:
+            insight.buyer_name ?? buyersById.get(insight.buyer_id)?.name,
+        })),
+    []
+  );
+  const visibleInsights = useMemo(
+    () =>
+      highSignalInsights.filter(
+        (insight) => !dismissedInsightIds.includes(insight.id)
+      ),
+    [highSignalInsights, dismissedInsightIds]
+  );
+  const handleDismiss = (id: string) => {
+    setDismissedInsightIds((prev) =>
+      prev.includes(id) ? prev : [...prev, id]
+    );
+  };
 
   return (
     <aside
@@ -345,7 +392,7 @@ export default function IntelligenceRail({
           <span style={{ color: "#e2e8f0" }}>{activeContext.type}</span>
         </div>
       </div>
-      {(activeContext.intelligence ?? []).map((card) => (
+      {cards.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}
