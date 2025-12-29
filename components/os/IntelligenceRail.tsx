@@ -2,7 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import eventsData from "@/data/events.json";
+import dealsData from "@/data/deals.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -60,11 +72,11 @@ const toastButtonStyle: React.CSSProperties = {
   padding: 0,
 };
 
-type InsightRecord = {
-  id: string;
+type InsightRecord = Insight & {
   buyer_name?: string;
   signal_level?: "standard" | "high";
   signal_summary?: string;
+  explainability?: string[];
 };
 
 interface IntelligenceRailProps {
@@ -76,6 +88,12 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
+
+const deals = dealsData as Deal[];
+const insights = insightsData as InsightRecord[];
+const buyers = buyersData as Buyer[];
+const events = eventsData as Event[];
+const properties = propertiesData as Property[];
 
 const formatCurrency = (value: number | null | undefined) =>
   typeof value === "number" ? currencyFormatter.format(value) : "—";
@@ -302,7 +320,7 @@ const buildPropertyCards = (propertyId: string) => {
   ];
 };
 
-const buildCardsForContext = (activeContext: ActiveContextItem) => {
+const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
       return buildCommandCards();
@@ -320,7 +338,55 @@ const buildCardsForContext = (activeContext: ActiveContextItem) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
-  const cards = buildCardsForContext(activeContext);
+  const cards = activeContext.intelligence ?? [];
+  const explainability = useMemo(() => {
+    if (activeContext.type === "buyer") {
+      const insight = insights.find(
+        (item) => item.buyer_id === activeContext.id
+      );
+      return insight?.explainability?.slice(0, 4) ?? [];
+    }
+
+    if (activeContext.type === "deal") {
+      const deal = deals.find((item) => item.id === activeContext.id);
+      if (!deal) {
+        return [];
+      }
+
+      return [
+        deal.offer_price && deal.list_price
+          ? `Offer ${formatCurrency(deal.offer_price)} vs list ${formatCurrency(
+              deal.list_price
+            )}.`
+          : "Offer price pending to validate pricing signal.",
+        deal.contingencies.length > 0
+          ? `Open contingencies: ${deal.contingencies
+              .map(titleCase)
+              .join(", ")}.`
+          : "No contingencies flagged on the contract.",
+        `Financing type: ${titleCase(deal.financing)}.`,
+        deal.close_target
+          ? `Target close: ${formatDate(deal.close_target)}.`
+          : "Close target still to be confirmed.",
+      ].slice(0, 4);
+    }
+
+    return [];
+  }, [activeContext]);
+
+  const [dismissedInsights, setDismissedInsights] = useState<string[]>([]);
+  const visibleInsights = useMemo(
+    () =>
+      insights
+        .filter((insight) => insight.signal_level === "high")
+        .filter((insight) => !dismissedInsights.includes(insight.id))
+        .slice(0, 2),
+    [dismissedInsights]
+  );
+
+  const handleDismiss = (id: string) => {
+    setDismissedInsights((prev) => [...prev, id]);
+  };
 
   return (
     <aside
@@ -345,7 +411,7 @@ export default function IntelligenceRail({
           <span style={{ color: "#e2e8f0" }}>{activeContext.type}</span>
         </div>
       </div>
-      {(activeContext.intelligence ?? []).map((card) => (
+      {cards.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}
@@ -360,6 +426,21 @@ export default function IntelligenceRail({
           ))}
         </div>
       ))}
+      {explainability.length > 0 ? (
+        <div style={cardStyle}>
+          <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
+            Why the OS thinks this
+          </div>
+          {explainability.map((reason) => (
+            <p
+              key={reason}
+              style={{ color: "#94a3b8", lineHeight: 1.6, margin: 0 }}
+            >
+              • {reason}
+            </p>
+          ))}
+        </div>
+      ) : null}
       <div style={{ marginTop: "auto", fontSize: "0.85rem", color: "#64748b" }}>
         Intelligence feed synced · 00:42s
       </div>
