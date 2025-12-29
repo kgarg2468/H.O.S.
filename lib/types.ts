@@ -77,6 +77,9 @@ export interface Event {
 export interface Insight {
   id: string;
   buyer_id: string;
+  buyer_name?: string;
+  signal_level?: "standard" | "high";
+  signal_summary?: string;
   fit_score: number;
   top_properties: string[];
   rationale: string;
