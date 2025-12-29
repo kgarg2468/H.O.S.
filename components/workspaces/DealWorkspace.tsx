@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 import type { Buyer, Deal, Event, Property } from "@/lib/types";
 
@@ -42,6 +45,8 @@ const formatDate = (value: string | null) =>
 
 const formatStatus = (value: string) =>
   value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
+
+const getRefreshDelayMs = () => 30000 + Math.floor(Math.random() * 30001);
 
 interface DealWorkspaceProps {
   deal: Deal;

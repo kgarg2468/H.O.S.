@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 import type {
   ActiveContext,
@@ -347,13 +347,13 @@ const buildPropertyCards = (propertyId: string) => {
 const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
-      return buildCommandCards();
+      return buildCommandCards(eventStream, insightStream);
     case "buyer":
-      return buildBuyerCards(activeContext.id);
+      return buildBuyerCards(activeContext.id, eventStream);
     case "deal":
-      return buildDealCards(activeContext.id);
+      return buildDealCards(activeContext.id, eventStream);
     case "property":
-      return buildPropertyCards(activeContext.id);
+      return buildPropertyCards(activeContext.id, eventStream);
     default:
       return [];
   }
@@ -466,7 +466,7 @@ export default function IntelligenceRail({
         </div>
       ) : null}
       <div style={{ marginTop: "auto", fontSize: "0.85rem", color: "#64748b" }}>
-        Intelligence feed synced · 00:42s
+        Intelligence feed synced · {syncSeconds}s
       </div>
       {visibleInsights.length > 0 ? (
         <div style={toastContainerStyle} aria-live="polite">
