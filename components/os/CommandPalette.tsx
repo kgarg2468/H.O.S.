@@ -110,6 +110,11 @@ export default function CommandPalette({
     }
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        return;
+      }
+
       if (event.key === "Escape") {
         event.preventDefault();
         onClose();
