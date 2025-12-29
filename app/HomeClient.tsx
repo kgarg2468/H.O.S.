@@ -15,8 +15,12 @@ export default function HomeClient({ sections }: HomeClientProps) {
     () => sections.flatMap((section) => section.items),
     [sections]
   );
+  const defaultContext = useMemo(
+    () => allItems.find((item) => item.type === "command") ?? allItems[0],
+    [allItems]
+  );
   const [activeContext, setActiveContext] = useState<ActiveContextItem>(
-    allItems[0]
+    defaultContext
   );
 
   return (

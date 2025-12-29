@@ -41,6 +41,7 @@ export default function PropertyWorkspace({
   property,
   properties,
 }: PropertyWorkspaceProps) {
+  const analysisLimit = 3;
   const [analysisIds, setAnalysisIds] = useState<string[]>([]);
 
   const comparableProperties = useMemo(() => {
@@ -57,6 +58,8 @@ export default function PropertyWorkspace({
   );
 
   const isInAnalysis = analysisIds.includes(property.id);
+  const isAtLimit = analysisIds.length >= analysisLimit;
+  const selectedProperty = property;
 
   const detailChips = [
     {

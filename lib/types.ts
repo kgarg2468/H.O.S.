@@ -103,6 +103,8 @@ export interface ActiveContext {
   intelligence?: IntelligenceCard[];
 }
 
+export type ActiveContextItem = ActiveContext;
+
 export interface RailSection {
   title: string;
   items: ActiveContext[];

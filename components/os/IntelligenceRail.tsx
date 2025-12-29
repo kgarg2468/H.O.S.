@@ -2,7 +2,26 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import type {
+  ActiveContext,
+  ActiveContextItem,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import dealsData from "@/data/deals.json";
+import eventsData from "@/data/events.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
+
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const events = eventsData as Event[];
+const insights = insightsData as Insight[];
+const properties = propertiesData as Property[];
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -320,6 +339,25 @@ const buildCardsForContext = (activeContext: ActiveContextItem) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
+  const toastInsights = useMemo<InsightRecord[]>(() => {
+    return insights.slice(0, 3).map((insight) => {
+      const buyer = buyers.find((item) => item.id === insight.buyer_id);
+      return {
+        id: insight.id,
+        buyer_name: buyer?.name,
+        signal_level: "high",
+        signal_summary: `Fit score ${insight.fit_score} · ${insight.rationale}`,
+      };
+    });
+  }, []);
+  const [visibleInsights, setVisibleInsights] =
+    useState<InsightRecord[]>(toastInsights);
+
+  const handleDismiss = (insightId: string) => {
+    setVisibleInsights((prev) =>
+      prev.filter((insight) => insight.id !== insightId)
+    );
+  };
   const cards = buildCardsForContext(activeContext);
 
   return (
