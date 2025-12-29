@@ -95,12 +95,7 @@ const toastButtonHoverStyle: React.CSSProperties = {
   color: "#e2e8f0",
 };
 
-type InsightRecord = {
-  id: string;
-  buyer_name?: string;
-  signal_level?: "standard" | "high";
-  signal_summary?: string;
-};
+type InsightData = Insight & InsightRecord;
 
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
@@ -118,6 +113,12 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+const deals = dealsData as Deal[];
+const insights = insightsData as InsightRecord[];
+const buyers = buyersData as Buyer[];
+const events = eventsData as Event[];
+const properties = propertiesData as Property[];
+
 const formatCurrency = (value: number | null | undefined) =>
   typeof value === "number" ? currencyFormatter.format(value) : "—";
 
@@ -134,14 +135,14 @@ const titleCase = (value: string) =>
     .join(" ");
 
 const buildCommandCards = () => {
-  const recentEvents = [...events]
+  const recentEvents = [...eventsData]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3)
     .map(
       (event) =>
         `${formatDate(event.date)} · ${titleCase(event.type)} — ${event.notes}`
     );
-  const priorities = insights
+  const priorities = insightsData
     .flatMap((insight) => insight.next_actions)
     .slice(0, 3);
 
@@ -164,9 +165,9 @@ const buildCommandCards = () => {
 };
 
 const buildBuyerCards = (buyerId: string) => {
-  const buyer = buyers.find((item) => item.id === buyerId);
-  const insight = insights.find((item) => item.buyer_id === buyerId);
-  const buyerEvents = events
+  const buyer = buyersData.find((item) => item.id === buyerId);
+  const insight = insightsData.find((item) => item.buyer_id === buyerId);
+  const buyerEvents = eventsData
     .filter((event) => event.buyer_id === buyerId)
     .sort((a, b) => b.date.localeCompare(a.date));
   const riskSignals = [
@@ -219,8 +220,8 @@ const buildBuyerCards = (buyerId: string) => {
 };
 
 const buildDealCards = (dealId: string) => {
-  const deal = deals.find((item) => item.id === dealId);
-  const dealEvents = events
+  const deal = dealsData.find((item) => item.id === dealId);
+  const dealEvents = eventsData
     .filter((event) => event.deal_id === dealId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -276,7 +277,7 @@ const buildDealCards = (dealId: string) => {
 };
 
 const buildPropertyCards = (propertyId: string) => {
-  const property = properties.find((item) => item.id === propertyId);
+  const property = propertiesData.find((item) => item.id === propertyId);
   if (!property) {
     return [
       {
@@ -290,7 +291,7 @@ const buildPropertyCards = (propertyId: string) => {
     ];
   }
 
-  const comps = properties
+  const comps = propertiesData
     .filter(
       (item) =>
         item.id !== property.id &&
@@ -304,7 +305,7 @@ const buildPropertyCards = (propertyId: string) => {
     )
     .slice(0, 3);
 
-  const propertyEvents = events
+  const propertyEvents = eventsData
     .filter((event) => event.property_id === propertyId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -449,6 +450,21 @@ export default function IntelligenceRail({
           ))}
         </div>
       ))}
+      {explainability.length > 0 ? (
+        <div style={cardStyle}>
+          <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
+            Why the OS thinks this
+          </div>
+          {explainability.map((reason) => (
+            <p
+              key={reason}
+              style={{ color: "#94a3b8", lineHeight: 1.6, margin: 0 }}
+            >
+              • {reason}
+            </p>
+          ))}
+        </div>
+      ) : null}
       <div style={{ marginTop: "auto", fontSize: "0.85rem", color: "#64748b" }}>
         Intelligence feed synced · 00:42s
       </div>

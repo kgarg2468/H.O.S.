@@ -28,6 +28,9 @@ const properties = propertiesData as Property[];
 
 interface WorkspaceProps {
   activeContext: ActiveContext;
+  analysisIds: string[];
+  onToggleAnalysis: (propertyId: string) => void;
+  onRemoveAnalysis: (propertyId: string) => void;
 }
 
 export default function Workspace({ activeContext }: WorkspaceProps) {
@@ -96,9 +99,11 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
       if (property) {
         content = (
           <PropertyWorkspace
-            key={contextKey}
             property={property}
             properties={properties}
+            analysisIds={analysisIds}
+            onToggleAnalysis={onToggleAnalysis}
+            onRemoveAnalysis={onRemoveAnalysis}
           />
         );
       }

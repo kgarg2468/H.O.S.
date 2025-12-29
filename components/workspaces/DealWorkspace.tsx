@@ -59,6 +59,26 @@ export default function DealWorkspace({
   const timeline = [...events].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+  const explainability = [
+    deal.offer_price && deal.list_price
+      ? `Offer ${formatPrice(deal.offer_price)} is ${
+          deal.offer_price >= deal.list_price ? "at/above" : "below"
+        } list ${formatPrice(deal.list_price)}.`
+      : "Offer price pending to validate pricing signal.",
+    deal.contingencies.length > 0
+      ? `Open contingencies: ${deal.contingencies
+          .map(formatStatus)
+          .join(", ")}.`
+      : "No contingencies flagged on the contract.",
+    `Financing type: ${formatStatus(deal.financing)}.`,
+    timeline[0]
+      ? `Latest milestone: ${formatStatus(timeline[0].type)} (${
+          timeline[0].outcome
+        }).`
+      : "No recent timeline events logged.",
+  ]
+    .filter(Boolean)
+    .slice(0, 4);
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header style={panelStyle}>
@@ -99,6 +119,22 @@ export default function DealWorkspace({
           <span style={pillStyle}>Status: {formatStatus(deal.status)}</span>
         </div>
       </header>
+
+      <section style={panelStyle}>
+        <div style={sectionTitleStyle}>Why the OS thinks this</div>
+        <ul
+          style={{
+            color: "#94a3b8",
+            lineHeight: 1.6,
+            paddingLeft: "1.1rem",
+            margin: 0,
+          }}
+        >
+          {explainability.map((reason) => (
+            <li key={reason}>{reason}</li>
+          ))}
+        </ul>
+      </section>
 
       <section style={panelStyle}>
         <div style={sectionTitleStyle}>Deal timeline</div>

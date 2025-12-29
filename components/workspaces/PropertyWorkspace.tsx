@@ -1,8 +1,9 @@
 "use client";
 
 import type React from "react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { Property } from "@/lib/types";
+import AnalysisTray from "@/components/workspaces/AnalysisTray";
 
 const panelStyle: React.CSSProperties = {
   background: "rgba(15, 23, 42, 0.8)",
@@ -35,15 +36,18 @@ const formatType = (type: string) =>
 interface PropertyWorkspaceProps {
   property: Property;
   properties: Property[];
+  analysisIds: string[];
+  onToggleAnalysis: (propertyId: string) => void;
+  onRemoveAnalysis: (propertyId: string) => void;
 }
 
 export default function PropertyWorkspace({
   property,
   properties,
+  analysisIds,
+  onToggleAnalysis,
+  onRemoveAnalysis,
 }: PropertyWorkspaceProps) {
-  const analysisLimit = 3;
-  const [analysisIds, setAnalysisIds] = useState<string[]>([]);
-
   const comparableProperties = useMemo(() => {
     return properties
       .filter(
@@ -58,8 +62,12 @@ export default function PropertyWorkspace({
   );
 
   const isInAnalysis = analysisIds.includes(property.id);
-  const isAtLimit = analysisIds.length >= analysisLimit;
-  const selectedProperty = property;
+  const isAtLimit = !isInAnalysis && analysisIds.length >= 4;
+
+  const selectedProperties = useMemo(
+    () => properties.filter((item) => analysisIds.includes(item.id)),
+    [analysisIds, properties]
+  );
 
   const detailChips = [
     {
@@ -114,11 +122,10 @@ export default function PropertyWorkspace({
         <button
           type="button"
           onClick={() => {
-            setAnalysisIds((prev) =>
-              prev.includes(property.id)
-                ? prev.filter((id) => id !== property.id)
-                : [...prev, property.id]
-            );
+            if (isAtLimit) {
+              return;
+            }
+            onToggleAnalysis(property.id);
           }}
           disabled={!isInAnalysis && isAtLimit}
           style={{
@@ -146,6 +153,11 @@ export default function PropertyWorkspace({
               : "Add to analysis"}
         </button>
       </header>
+
+      <AnalysisTray
+        selectedProperties={selectedProperties}
+        onRemove={onRemoveAnalysis}
+      />
 
       <section
         style={{
@@ -214,7 +226,7 @@ export default function PropertyWorkspace({
               color: "#94a3b8",
             }}
           >
-            Map placeholder · {selectedProperty.neighborhood}
+            Map placeholder · {property.neighborhood}
           </div>
         </div>
 

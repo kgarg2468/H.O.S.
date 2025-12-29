@@ -71,7 +71,12 @@ export default function HomeClient({ sections }: HomeClientProps) {
         activeItemId={activeContext.id}
         onSelect={setActiveContext}
       />
-      <Workspace activeContext={activeContext} />
+      <Workspace
+        activeContext={activeContext}
+        analysisIds={analysisIds}
+        onToggleAnalysis={handleToggleAnalysis}
+        onRemoveAnalysis={handleRemoveAnalysis}
+      />
       <IntelligenceRail activeContext={activeContext} />
       <CommandPalette
         isOpen={isPaletteOpen}
