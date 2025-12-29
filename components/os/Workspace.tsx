@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useState } from "react";
 import type React from "react";
 import CommandCenter from "@/components/workspaces/CommandCenter";
 import BuyerWorkspace from "@/components/workspaces/BuyerWorkspace";
@@ -28,6 +31,14 @@ interface WorkspaceProps {
 }
 
 export default function Workspace({ activeContext }: WorkspaceProps) {
+  const [isVisible, setIsVisible] = useState(true);
+
+  useEffect(() => {
+    setIsVisible(false);
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(frame);
+  }, [activeContext.id, activeContext.type]);
+
   const buyer = buyers.find((item) => item.id === activeContext.id);
   const deal = deals.find((item) => item.id === activeContext.id);
   const property = properties.find((item) => item.id === activeContext.id);
@@ -105,6 +116,10 @@ export default function Workspace({ activeContext }: WorkspaceProps) {
         gap: "1.5rem",
         background: "linear-gradient(180deg, #0b1017 0%, #0b1220 100%)",
         minHeight: "100vh",
+        opacity: isVisible ? 1 : 0,
+        transform: isVisible ? "translateY(0)" : "translateY(6px)",
+        transition: "opacity 200ms ease, transform 200ms ease",
+        willChange: "opacity, transform",
       }}
     >
       {content ?? <CommandCenter />}
