@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 import type { Buyer, Event, Insight } from "@/lib/types";
 
@@ -51,6 +54,8 @@ const formatDate = (date: string) =>
     day: "numeric",
   });
 
+const getRefreshDelayMs = () => 30000 + Math.floor(Math.random() * 30001);
+
 interface BuyerWorkspaceProps {
   buyer: Buyer;
   events: Event[];
@@ -62,9 +67,66 @@ export default function BuyerWorkspace({
   events,
   insight,
 }: BuyerWorkspaceProps) {
-  const timeline = [...events].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const [pulse, setPulse] = useState(0);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const schedule = () => {
+      timeoutId = setTimeout(() => {
+        setPulse((current) => current + 1);
+        schedule();
+      }, getRefreshDelayMs());
+    };
+
+    schedule();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const timeline = useMemo(() => {
+    const baseTimeline = [...events].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    if (baseTimeline.length === 0) {
+      return baseTimeline;
+    }
+
+    const pulseUpdates = [
+      {
+        type: "check_in",
+        outcome: "Buyer requested updated listing shortlist",
+        notes: "Shared refreshed comp set and scheduled follow-up.",
+      },
+      {
+        type: "tour_scheduled",
+        outcome: "New tour added to weekend itinerary",
+        notes: "Buyer wants a second look at a top property.",
+      },
+      {
+        type: "financing_update",
+        outcome: "Lender confirmed pre-approval review window",
+        notes: "Expect updated approval letter in 48 hours.",
+      },
+    ];
+
+    const pulseUpdate = pulseUpdates[pulse % pulseUpdates.length];
+    const pulseEvent: Event = {
+      ...baseTimeline[0],
+      id: `${baseTimeline[0].id}-pulse-${pulse}`,
+      date: new Date().toISOString().slice(0, 10),
+      type: pulseUpdate.type,
+      outcome: pulseUpdate.outcome,
+      notes: pulseUpdate.notes,
+      buyer_id: buyer.id,
+    };
+
+    return [pulseEvent, ...baseTimeline.slice(0, 3)];
+  }, [buyer.id, events, pulse]);
+
   const latestEvent = timeline[0];
   const nextActions =
     insight?.next_actions.length

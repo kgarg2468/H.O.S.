@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
 import type { Buyer, Deal, Event, Property } from "@/lib/types";
 
@@ -43,6 +46,8 @@ const formatDate = (value: string | null) =>
 const formatStatus = (value: string) =>
   value.replace(/_/g, " ").replace(/\b\w/g, (match) => match.toUpperCase());
 
+const getRefreshDelayMs = () => 30000 + Math.floor(Math.random() * 30001);
+
 interface DealWorkspaceProps {
   deal: Deal;
   buyer?: Buyer;
@@ -56,9 +61,60 @@ export default function DealWorkspace({
   property,
   events,
 }: DealWorkspaceProps) {
-  const timeline = [...events].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  const [pulse, setPulse] = useState(0);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const schedule = () => {
+      timeoutId = setTimeout(() => {
+        setPulse((current) => current + 1);
+        schedule();
+      }, getRefreshDelayMs());
+    };
+
+    schedule();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const timeline = useMemo(() => {
+    const baseTimeline = [...events].sort(
+      (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+    );
+
+    if (baseTimeline.length === 0) {
+      return baseTimeline;
+    }
+
+    const pulseUpdates = [
+      {
+        type: "inspection_update",
+        notes: "Inspection notes uploaded; reviewing contractor follow-ups.",
+      },
+      {
+        type: "offer_revision",
+        notes: "Seller countered with updated closing window.",
+      },
+      {
+        type: "title_check",
+        notes: "Title review in progress; awaiting escrow feedback.",
+      },
+    ];
+
+    const pulseUpdate = pulseUpdates[pulse % pulseUpdates.length];
+    const pulseEvent: Event = {
+      ...baseTimeline[0],
+      id: `${baseTimeline[0].id}-pulse-${pulse}`,
+      date: new Date().toISOString().slice(0, 10),
+      type: pulseUpdate.type,
+      notes: pulseUpdate.notes,
+    };
+
+    return [pulseEvent, ...baseTimeline.slice(0, 3)];
+  }, [events, pulse]);
   return (
     <section style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
       <header style={panelStyle}>

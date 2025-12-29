@@ -1,8 +1,20 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import dealsData from "@/data/deals.json";
+import eventsData from "@/data/events.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -92,15 +104,60 @@ const titleCase = (value: string) =>
     .map((chunk) => chunk.charAt(0).toUpperCase() + chunk.slice(1))
     .join(" ");
 
-const buildCommandCards = () => {
-  const recentEvents = [...events]
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const events = eventsData as Event[];
+const insights = insightsData as Insight[];
+const properties = propertiesData as Property[];
+
+const getRefreshDelayMs = () => 30000 + Math.floor(Math.random() * 30001);
+
+const buildLiveEvents = (pulse: number) => {
+  if (events.length === 0) {
+    return events;
+  }
+
+  const baseline = [...events].sort((a, b) => b.date.localeCompare(a.date));
+  const pulseVariants = [
+    {
+      type: "market_update",
+      notes: "Fresh listing activity flagged; reviewing pricing signals.",
+      outcome: "Listing momentum increased",
+    },
+    {
+      type: "buyer_followup",
+      notes: "Buyer confirmed updated timeline after lender check-in.",
+      outcome: "Timeline nudged sooner",
+    },
+    {
+      type: "inspection_note",
+      notes: "Inspection summary shared with seller and buyer.",
+      outcome: "Inspection risk trending down",
+    },
+  ];
+
+  const variant = pulseVariants[pulse % pulseVariants.length];
+  const pulseEvent: Event = {
+    ...baseline[0],
+    id: `${baseline[0].id}-pulse-${pulse}`,
+    date: new Date().toISOString().slice(0, 10),
+    type: variant.type,
+    notes: variant.notes,
+    outcome: variant.outcome,
+  };
+
+  return [pulseEvent, ...baseline];
+};
+
+const buildCommandCards = (eventStream: Event[], insightStream: Insight[]) => {
+  const recentEvents = [...eventStream]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3)
     .map(
       (event) =>
         `${formatDate(event.date)} · ${titleCase(event.type)} — ${event.notes}`
     );
-  const priorities = insights
+  const priorities = insightStream
     .flatMap((insight) => insight.next_actions)
     .slice(0, 3);
 
@@ -122,10 +179,10 @@ const buildCommandCards = () => {
   ];
 };
 
-const buildBuyerCards = (buyerId: string) => {
+const buildBuyerCards = (buyerId: string, eventStream: Event[]) => {
   const buyer = buyers.find((item) => item.id === buyerId);
   const insight = insights.find((item) => item.buyer_id === buyerId);
-  const buyerEvents = events
+  const buyerEvents = eventStream
     .filter((event) => event.buyer_id === buyerId)
     .sort((a, b) => b.date.localeCompare(a.date));
   const riskSignals = [
@@ -177,9 +234,9 @@ const buildBuyerCards = (buyerId: string) => {
   ];
 };
 
-const buildDealCards = (dealId: string) => {
+const buildDealCards = (dealId: string, eventStream: Event[]) => {
   const deal = deals.find((item) => item.id === dealId);
-  const dealEvents = events
+  const dealEvents = eventStream
     .filter((event) => event.deal_id === dealId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -234,7 +291,7 @@ const buildDealCards = (dealId: string) => {
   ];
 };
 
-const buildPropertyCards = (propertyId: string) => {
+const buildPropertyCards = (propertyId: string, eventStream: Event[]) => {
   const property = properties.find((item) => item.id === propertyId);
   if (!property) {
     return [
@@ -263,7 +320,7 @@ const buildPropertyCards = (propertyId: string) => {
     )
     .slice(0, 3);
 
-  const propertyEvents = events
+  const propertyEvents = eventStream
     .filter((event) => event.property_id === propertyId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -302,16 +359,20 @@ const buildPropertyCards = (propertyId: string) => {
   ];
 };
 
-const buildCardsForContext = (activeContext: ActiveContextItem) => {
+const buildCardsForContext = (
+  activeContext: ActiveContext,
+  eventStream: Event[],
+  insightStream: Insight[]
+) => {
   switch (activeContext.type) {
     case "command":
-      return buildCommandCards();
+      return buildCommandCards(eventStream, insightStream);
     case "buyer":
-      return buildBuyerCards(activeContext.id);
+      return buildBuyerCards(activeContext.id, eventStream);
     case "deal":
-      return buildDealCards(activeContext.id);
+      return buildDealCards(activeContext.id, eventStream);
     case "property":
-      return buildPropertyCards(activeContext.id);
+      return buildPropertyCards(activeContext.id, eventStream);
     default:
       return [];
   }
@@ -320,7 +381,64 @@ const buildCardsForContext = (activeContext: ActiveContextItem) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
-  const cards = buildCardsForContext(activeContext);
+  const [pulse, setPulse] = useState(0);
+  const [lastSyncedAt, setLastSyncedAt] = useState(() => new Date());
+  const [visibleInsights, setVisibleInsights] = useState<InsightRecord[]>([]);
+
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const schedule = () => {
+      timeoutId = setTimeout(() => {
+        setPulse((current) => current + 1);
+        setLastSyncedAt(new Date());
+        schedule();
+      }, getRefreshDelayMs());
+    };
+
+    schedule();
+
+    return () => {
+      clearTimeout(timeoutId);
+    };
+  }, []);
+
+  const eventStream = useMemo(() => buildLiveEvents(pulse), [pulse]);
+  const cards = useMemo(
+    () => buildCardsForContext(activeContext, eventStream, insights),
+    [activeContext, eventStream]
+  );
+  const syncSeconds = Math.max(
+    1,
+    Math.round((Date.now() - lastSyncedAt.getTime()) / 1000)
+  );
+
+  useEffect(() => {
+    if (insights.length === 0) {
+      return;
+    }
+
+    const insight = insights[pulse % insights.length];
+    const buyer = buyers.find((item) => item.id === insight.buyer_id);
+    const nextSignal: InsightRecord = {
+      id: `${insight.id}-pulse-${pulse}`,
+      buyer_name: buyer?.name,
+      signal_level: "high",
+      signal_summary: `Signal update: ${insight.rationale}`,
+    };
+
+    setVisibleInsights((current) => [nextSignal, ...current].slice(0, 2));
+  }, [pulse]);
+
+  const handleDismiss = (id: string) => {
+    setVisibleInsights((current) =>
+      current.filter((insight) => insight.id !== id)
+    );
+  };
+
+  const displayedCards = cards.length
+    ? cards
+    : (activeContext.intelligence ?? []);
 
   return (
     <aside
@@ -345,7 +463,7 @@ export default function IntelligenceRail({
           <span style={{ color: "#e2e8f0" }}>{activeContext.type}</span>
         </div>
       </div>
-      {(activeContext.intelligence ?? []).map((card) => (
+      {displayedCards.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}
@@ -361,7 +479,7 @@ export default function IntelligenceRail({
         </div>
       ))}
       <div style={{ marginTop: "auto", fontSize: "0.85rem", color: "#64748b" }}>
-        Intelligence feed synced · 00:42s
+        Intelligence feed synced · {syncSeconds}s
       </div>
       {visibleInsights.length > 0 ? (
         <div style={toastContainerStyle} aria-live="polite">
