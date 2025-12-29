@@ -95,7 +95,10 @@ const toastButtonHoverStyle: React.CSSProperties = {
   color: "#e2e8f0",
 };
 
-type InsightData = Insight & InsightRecord;
+type InsightSignal = Pick<
+  Insight,
+  "id" | "buyer_name" | "signal_level" | "signal_summary"
+>;
 
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
@@ -112,12 +115,6 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   currency: "USD",
   maximumFractionDigits: 0,
 });
-
-const deals = dealsData as Deal[];
-const insights = insightsData as InsightRecord[];
-const buyers = buyersData as Buyer[];
-const events = eventsData as Event[];
-const properties = propertiesData as Property[];
 
 const formatCurrency = (value: number | null | undefined) =>
   typeof value === "number" ? currencyFormatter.format(value) : "—";
@@ -347,13 +344,13 @@ const buildPropertyCards = (propertyId: string) => {
 const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
-      return buildCommandCards(eventStream, insightStream);
+      return buildCommandCards();
     case "buyer":
-      return buildBuyerCards(activeContext.id, eventStream);
+      return buildBuyerCards(activeContext.id);
     case "deal":
-      return buildDealCards(activeContext.id, eventStream);
+      return buildDealCards(activeContext.id);
     case "property":
-      return buildPropertyCards(activeContext.id, eventStream);
+      return buildPropertyCards(activeContext.id);
     default:
       return [];
   }
@@ -367,8 +364,20 @@ export default function IntelligenceRail({
   const [hoveredToastId, setHoveredToastId] = useState<string | null>(null);
   const [hoveredDismissId, setHoveredDismissId] = useState<string | null>(null);
   const [dismissedInsights, setDismissedInsights] = useState<string[]>([]);
+  const [syncSeconds, setSyncSeconds] = useState(12);
 
-  const insightSignals = useMemo<InsightRecord[]>(
+  useEffect(() => {
+    const start = Date.now();
+    const intervalId = window.setInterval(() => {
+      setSyncSeconds(Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  const insightSignals = useMemo<InsightSignal[]>(
     () =>
       insights.map((insight) => {
         const buyer = buyers.find((item) => item.id === insight.buyer_id);
@@ -383,8 +392,76 @@ export default function IntelligenceRail({
               : undefined,
         };
       }),
-    []
+    [buyers, insights]
   );
+
+  const explainability = useMemo(() => {
+    switch (activeContext.type) {
+      case "buyer": {
+        const insight = insights.find(
+          (item) => item.buyer_id === activeContext.id
+        );
+        if (insight?.explainability?.length) {
+          return insight.explainability.slice(0, 4);
+        }
+        const buyer = buyers.find((item) => item.id === activeContext.id);
+        if (!buyer) {
+          return [];
+        }
+        return [
+          `${buyer.preapproved ? "Pre-approved" : "Pending pre-approval"} financing status influences readiness.`,
+          `Top neighborhoods: ${buyer.preferred_locations.slice(0, 2).join(", ")}.`,
+          `${buyer.bedrooms_min}+ beds and ${buyer.bathrooms_min}+ baths set the search floor.`,
+        ].slice(0, 4);
+      }
+      case "deal": {
+        const deal = deals.find((item) => item.id === activeContext.id);
+        if (!deal) {
+          return [];
+        }
+        const dealEvents = events
+          .filter((event) => event.deal_id === activeContext.id)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        return [
+          deal.offer_price && deal.list_price
+            ? `Offer ${formatCurrency(deal.offer_price)} is ${
+                deal.offer_price >= deal.list_price ? "at/above" : "below"
+              } list ${formatCurrency(deal.list_price)}.`
+            : "Offer price pending to validate pricing signal.",
+          deal.contingencies.length > 0
+            ? `Open contingencies: ${deal.contingencies.join(", ")}.`
+            : "No contingencies flagged on the contract.",
+          `Financing type: ${titleCase(deal.financing)}.`,
+          dealEvents[0]
+            ? `Latest milestone: ${titleCase(dealEvents[0].type)} (${dealEvents[0].outcome}).`
+            : "No recent timeline events logged.",
+        ].slice(0, 4);
+      }
+      case "property": {
+        const property = properties.find(
+          (item) => item.id === activeContext.id
+        );
+        if (!property) {
+          return [];
+        }
+        const propertyEvents = events
+          .filter((event) => event.property_id === activeContext.id)
+          .sort((a, b) => b.date.localeCompare(a.date));
+        return [
+          `Status: ${titleCase(property.status)}.`,
+          `Listed at ${formatCurrency(property.price)} in ${property.neighborhood}.`,
+          property.days_on_market > 20
+            ? `On market ${property.days_on_market} days, above norm.`
+            : "Days on market within expected range.",
+          propertyEvents[0]
+            ? `Latest showing: ${propertyEvents[0].notes}.`
+            : "No recent showing updates logged.",
+        ].slice(0, 4);
+      }
+      default:
+        return [];
+    }
+  }, [activeContext, buyers, insights, deals, events, properties]);
 
   const visibleInsights = useMemo(
     () =>

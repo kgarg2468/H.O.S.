@@ -33,7 +33,12 @@ interface WorkspaceProps {
   onRemoveAnalysis: (propertyId: string) => void;
 }
 
-export default function Workspace({ activeContext }: WorkspaceProps) {
+export default function Workspace({
+  activeContext,
+  analysisIds,
+  onToggleAnalysis,
+  onRemoveAnalysis,
+}: WorkspaceProps) {
   const [isVisible, setIsVisible] = useState(true);
 
   useEffect(() => {

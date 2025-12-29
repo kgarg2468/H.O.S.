@@ -16,6 +16,17 @@ export default function HomeClient({ sections }: HomeClientProps) {
     () => sections.flatMap((section) => section.items),
     [sections]
   );
+  const defaultContext = useMemo(
+    () =>
+      sections[0]?.items[0] ?? {
+        id: "command-center",
+        type: "command",
+        title: "Command Center",
+        description: "Live signal routing for active revenue moments.",
+        status: "Streaming",
+      },
+    [sections]
+  );
   const itemLookup = useMemo(
     () => new Map(allItems.map((item) => [item.id, item])),
     [allItems]
@@ -34,6 +45,7 @@ export default function HomeClient({ sections }: HomeClientProps) {
     defaultContext
   );
   const [isPaletteOpen, setPaletteOpen] = useState(false);
+  const [analysisIds, setAnalysisIds] = useState<string[]>([]);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -53,6 +65,22 @@ export default function HomeClient({ sections }: HomeClientProps) {
       setActiveContext(nextContext);
     }
     setPaletteOpen(false);
+  };
+
+  const handleToggleAnalysis = (propertyId: string) => {
+    setAnalysisIds((prev) => {
+      if (prev.includes(propertyId)) {
+        return prev.filter((id) => id !== propertyId);
+      }
+      if (prev.length >= 4) {
+        return prev;
+      }
+      return [...prev, propertyId];
+    });
+  };
+
+  const handleRemoveAnalysis = (propertyId: string) => {
+    setAnalysisIds((prev) => prev.filter((id) => id !== propertyId));
   };
 
   return (
