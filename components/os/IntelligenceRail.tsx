@@ -95,6 +95,8 @@ const toastButtonHoverStyle: React.CSSProperties = {
   color: "#e2e8f0",
 };
 
+type InsightData = Insight & InsightRecord;
+
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
