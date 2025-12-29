@@ -111,6 +111,12 @@ const currencyFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 0,
 });
 
+const deals = dealsData as Deal[];
+const insights = insightsData as InsightRecord[];
+const buyers = buyersData as Buyer[];
+const events = eventsData as Event[];
+const properties = propertiesData as Property[];
+
 const formatCurrency = (value: number | null | undefined) =>
   typeof value === "number" ? currencyFormatter.format(value) : "—";
 
@@ -442,6 +448,21 @@ export default function IntelligenceRail({
           ))}
         </div>
       ))}
+      {explainability.length > 0 ? (
+        <div style={cardStyle}>
+          <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
+            Why the OS thinks this
+          </div>
+          {explainability.map((reason) => (
+            <p
+              key={reason}
+              style={{ color: "#94a3b8", lineHeight: 1.6, margin: 0 }}
+            >
+              • {reason}
+            </p>
+          ))}
+        </div>
+      ) : null}
       <div style={{ marginTop: "auto", fontSize: "0.85rem", color: "#64748b" }}>
         Intelligence feed synced · 00:42s
       </div>

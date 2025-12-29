@@ -84,6 +84,7 @@ export interface Insight {
   top_properties: string[];
   rationale: string;
   next_actions: string[];
+  explainability?: string[];
 }
 
 export interface Metric {
