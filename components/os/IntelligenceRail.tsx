@@ -2,7 +2,19 @@
 
 import { useMemo, useState } from "react";
 import type React from "react";
-import type { ActiveContext } from "@/lib/types";
+import type {
+  ActiveContext,
+  Buyer,
+  Deal,
+  Event,
+  Insight,
+  Property,
+} from "@/lib/types";
+import buyersData from "@/data/buyers.json";
+import dealsData from "@/data/deals.json";
+import eventsData from "@/data/events.json";
+import insightsData from "@/data/insights.json";
+import propertiesData from "@/data/properties.json";
 
 const cardStyle: React.CSSProperties = {
   padding: "1rem",
@@ -67,9 +79,17 @@ type InsightRecord = {
   signal_summary?: string;
 };
 
+type InsightData = Insight & InsightRecord;
+
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
+
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const events = eventsData as Event[];
+const insights = insightsData as InsightData[];
+const properties = propertiesData as Property[];
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -302,7 +322,7 @@ const buildPropertyCards = (propertyId: string) => {
   ];
 };
 
-const buildCardsForContext = (activeContext: ActiveContextItem) => {
+const buildCardsForContext = (activeContext: ActiveContext) => {
   switch (activeContext.type) {
     case "command":
       return buildCommandCards();
@@ -321,6 +341,24 @@ export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
   const cards = buildCardsForContext(activeContext);
+  const highSignalInsights = useMemo(
+    () => insights.filter((insight) => insight.signal_level === "high"),
+    [insights]
+  );
+  const [dismissedInsightIds, setDismissedInsightIds] = useState<string[]>([]);
+  const visibleInsights = useMemo(
+    () =>
+      highSignalInsights.filter(
+        (insight) => !dismissedInsightIds.includes(insight.id)
+      ),
+    [dismissedInsightIds, highSignalInsights]
+  );
+
+  const handleDismiss = (insightId: string) => {
+    setDismissedInsightIds((previous) =>
+      previous.includes(insightId) ? previous : [...previous, insightId]
+    );
+  };
 
   return (
     <aside
@@ -345,7 +383,7 @@ export default function IntelligenceRail({
           <span style={{ color: "#e2e8f0" }}>{activeContext.type}</span>
         </div>
       </div>
-      {(activeContext.intelligence ?? []).map((card) => (
+      {cards.map((card) => (
         <div key={card.title} style={cardStyle}>
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}

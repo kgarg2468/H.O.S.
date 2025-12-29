@@ -1,66 +1,6 @@
 import HomeClient from "@/app/HomeClient";
 import { loadMockJsonSync } from "@/lib/mock";
-import type { RailSection } from "@/lib/types";
-
-type Buyer = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  budget_min: number;
-  budget_max: number;
-  preferred_locations: string[];
-  property_types: string[];
-  bedrooms_min: number;
-  bathrooms_min: number;
-  must_haves: string[];
-  timeline: string;
-  preapproved: boolean;
-  status: string;
-  notes: string;
-};
-
-type Deal = {
-  id: string;
-  buyer_id: string;
-  property_id: string;
-  stage: string;
-  list_price: number;
-  offer_price: number | null;
-  financing: string;
-  contingencies: string[];
-  offer_date: string | null;
-  close_target: string | null;
-  agent: string;
-  status: string;
-};
-
-type Property = {
-  id: string;
-  address: string;
-  city: string;
-  state: string;
-  zip: string;
-  neighborhood: string;
-  type: string;
-  bedrooms: number;
-  bathrooms: number;
-  sqft: number;
-  price: number;
-  features: string[];
-  status: string;
-  listed_at: string;
-  days_on_market: number;
-};
-
-type Insight = {
-  id: string;
-  buyer_id: string;
-  fit_score: number;
-  top_properties: string[];
-  rationale: string;
-  next_actions: string[];
-};
+import type { Buyer, Deal, Insight, Property, RailSection } from "@/lib/types";
 
 const buyers = loadMockJsonSync<Buyer[]>("data/buyers.json");
 const deals = loadMockJsonSync<Deal[]>("data/deals.json");
@@ -180,14 +120,6 @@ const sections: RailSection[] = [
         ],
       };
     }),
-  },
-  {
-    title: "Buyers",
-    items: buyerItems,
-  },
-  {
-    title: "Deals",
-    items: dealItems,
   },
   {
     title: "Properties",
