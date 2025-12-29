@@ -95,13 +95,6 @@ const toastButtonHoverStyle: React.CSSProperties = {
   color: "#e2e8f0",
 };
 
-type InsightRecord = {
-  id: string;
-  buyer_name?: string;
-  signal_level?: "standard" | "high";
-  signal_summary?: string;
-};
-
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
