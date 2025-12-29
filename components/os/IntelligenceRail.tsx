@@ -11,8 +11,8 @@ import type {
   Property,
 } from "@/lib/types";
 import buyersData from "@/data/buyers.json";
-import eventsData from "@/data/events.json";
 import dealsData from "@/data/deals.json";
+import eventsData from "@/data/events.json";
 import insightsData from "@/data/insights.json";
 import propertiesData from "@/data/properties.json";
 
@@ -22,6 +22,15 @@ const cardStyle: React.CSSProperties = {
   background: "rgba(15, 23, 42, 0.65)",
   border: "1px solid rgba(148, 163, 184, 0.12)",
   boxShadow: "0 12px 40px rgba(2, 6, 23, 0.4)",
+  transition:
+    "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease",
+};
+
+const cardHoverStyle: React.CSSProperties = {
+  border: "1px solid rgba(148, 163, 184, 0.35)",
+  background: "rgba(30, 41, 59, 0.8)",
+  boxShadow: "0 16px 36px rgba(15, 23, 42, 0.5)",
+  transform: "translateY(-2px)",
 };
 
 const toastContainerStyle: React.CSSProperties = {
@@ -48,6 +57,15 @@ const toastStyle: React.CSSProperties = {
   flexDirection: "column",
   gap: "0.35rem",
   pointerEvents: "auto",
+  transition:
+    "border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease, background-color 160ms ease",
+};
+
+const toastHoverStyle: React.CSSProperties = {
+  border: "1px solid rgba(148, 163, 184, 0.45)",
+  background: "rgba(30, 41, 59, 0.95)",
+  transform: "translateY(-2px)",
+  boxShadow: "0 18px 36px rgba(2, 6, 23, 0.5)",
 };
 
 const toastHeaderStyle: React.CSSProperties = {
@@ -70,18 +88,22 @@ const toastButtonStyle: React.CSSProperties = {
   fontSize: "0.75rem",
   cursor: "pointer",
   padding: 0,
+  transition: "color 160ms ease",
 };
 
-type InsightRecord = Insight & {
-  buyer_name?: string;
-  signal_level?: "standard" | "high";
-  signal_summary?: string;
-  explainability?: string[];
+const toastButtonHoverStyle: React.CSSProperties = {
+  color: "#e2e8f0",
 };
 
 interface IntelligenceRailProps {
   activeContext: ActiveContext;
 }
+
+const buyers = buyersData as Buyer[];
+const deals = dealsData as Deal[];
+const events = eventsData as Event[];
+const insights = insightsData as Insight[];
+const properties = propertiesData as Property[];
 
 const currencyFormatter = new Intl.NumberFormat("en-US", {
   style: "currency",
@@ -111,14 +133,14 @@ const titleCase = (value: string) =>
     .join(" ");
 
 const buildCommandCards = () => {
-  const recentEvents = [...events]
+  const recentEvents = [...eventsData]
     .sort((a, b) => b.date.localeCompare(a.date))
     .slice(0, 3)
     .map(
       (event) =>
         `${formatDate(event.date)} · ${titleCase(event.type)} — ${event.notes}`
     );
-  const priorities = insights
+  const priorities = insightsData
     .flatMap((insight) => insight.next_actions)
     .slice(0, 3);
 
@@ -141,9 +163,9 @@ const buildCommandCards = () => {
 };
 
 const buildBuyerCards = (buyerId: string) => {
-  const buyer = buyers.find((item) => item.id === buyerId);
-  const insight = insights.find((item) => item.buyer_id === buyerId);
-  const buyerEvents = events
+  const buyer = buyersData.find((item) => item.id === buyerId);
+  const insight = insightsData.find((item) => item.buyer_id === buyerId);
+  const buyerEvents = eventsData
     .filter((event) => event.buyer_id === buyerId)
     .sort((a, b) => b.date.localeCompare(a.date));
   const riskSignals = [
@@ -196,8 +218,8 @@ const buildBuyerCards = (buyerId: string) => {
 };
 
 const buildDealCards = (dealId: string) => {
-  const deal = deals.find((item) => item.id === dealId);
-  const dealEvents = events
+  const deal = dealsData.find((item) => item.id === dealId);
+  const dealEvents = eventsData
     .filter((event) => event.deal_id === dealId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -253,7 +275,7 @@ const buildDealCards = (dealId: string) => {
 };
 
 const buildPropertyCards = (propertyId: string) => {
-  const property = properties.find((item) => item.id === propertyId);
+  const property = propertiesData.find((item) => item.id === propertyId);
   if (!property) {
     return [
       {
@@ -267,7 +289,7 @@ const buildPropertyCards = (propertyId: string) => {
     ];
   }
 
-  const comps = properties
+  const comps = propertiesData
     .filter(
       (item) =>
         item.id !== property.id &&
@@ -281,7 +303,7 @@ const buildPropertyCards = (propertyId: string) => {
     )
     .slice(0, 3);
 
-  const propertyEvents = events
+  const propertyEvents = eventsData
     .filter((event) => event.property_id === propertyId)
     .sort((a, b) => b.date.localeCompare(a.date));
 
@@ -338,54 +360,46 @@ const buildCardsForContext = (activeContext: ActiveContext) => {
 export default function IntelligenceRail({
   activeContext,
 }: IntelligenceRailProps) {
-  const cards = activeContext.intelligence ?? [];
-  const explainability = useMemo(() => {
-    if (activeContext.type === "buyer") {
-      const insight = insights.find(
-        (item) => item.buyer_id === activeContext.id
-      );
-      return insight?.explainability?.slice(0, 4) ?? [];
-    }
-
-    if (activeContext.type === "deal") {
-      const deal = deals.find((item) => item.id === activeContext.id);
-      if (!deal) {
-        return [];
-      }
-
-      return [
-        deal.offer_price && deal.list_price
-          ? `Offer ${formatCurrency(deal.offer_price)} vs list ${formatCurrency(
-              deal.list_price
-            )}.`
-          : "Offer price pending to validate pricing signal.",
-        deal.contingencies.length > 0
-          ? `Open contingencies: ${deal.contingencies
-              .map(titleCase)
-              .join(", ")}.`
-          : "No contingencies flagged on the contract.",
-        `Financing type: ${titleCase(deal.financing)}.`,
-        deal.close_target
-          ? `Target close: ${formatDate(deal.close_target)}.`
-          : "Close target still to be confirmed.",
-      ].slice(0, 4);
-    }
-
-    return [];
-  }, [activeContext]);
-
+  const cards = activeContext.intelligence ?? buildCardsForContext(activeContext);
+  const [hoveredCardTitle, setHoveredCardTitle] = useState<string | null>(null);
+  const [hoveredToastId, setHoveredToastId] = useState<string | null>(null);
+  const [hoveredDismissId, setHoveredDismissId] = useState<string | null>(null);
   const [dismissedInsights, setDismissedInsights] = useState<string[]>([]);
+
+  const insightSignals = useMemo<InsightRecord[]>(
+    () =>
+      insights.map((insight) => {
+        const buyer = buyers.find((item) => item.id === insight.buyer_id);
+        const signalLevel = insight.fit_score >= 85 ? "high" : "standard";
+        return {
+          id: insight.id,
+          buyer_name: buyer?.name,
+          signal_level: signalLevel,
+          signal_summary:
+            signalLevel === "high"
+              ? `Fit score ${insight.fit_score} · ${insight.rationale}`
+              : undefined,
+        };
+      }),
+    []
+  );
+
   const visibleInsights = useMemo(
     () =>
-      insights
-        .filter((insight) => insight.signal_level === "high")
-        .filter((insight) => !dismissedInsights.includes(insight.id))
+      insightSignals
+        .filter(
+          (insight) =>
+            insight.signal_level === "high" &&
+            !dismissedInsights.includes(insight.id)
+        )
         .slice(0, 2),
-    [dismissedInsights]
+    [dismissedInsights, insightSignals]
   );
 
   const handleDismiss = (id: string) => {
-    setDismissedInsights((prev) => [...prev, id]);
+    setDismissedInsights((prev) =>
+      prev.includes(id) ? prev : [...prev, id]
+    );
   };
 
   return (
@@ -412,7 +426,15 @@ export default function IntelligenceRail({
         </div>
       </div>
       {cards.map((card) => (
-        <div key={card.title} style={cardStyle}>
+        <div
+          key={card.title}
+          onMouseEnter={() => setHoveredCardTitle(card.title)}
+          onMouseLeave={() => setHoveredCardTitle(null)}
+          style={{
+            ...cardStyle,
+            ...(hoveredCardTitle === card.title ? cardHoverStyle : null),
+          }}
+        >
           <div style={{ fontWeight: 600, marginBottom: "0.35rem" }}>
             {card.title}
           </div>
@@ -447,7 +469,16 @@ export default function IntelligenceRail({
       {visibleInsights.length > 0 ? (
         <div style={toastContainerStyle} aria-live="polite">
           {visibleInsights.map((insight) => (
-            <div key={insight.id} style={toastStyle} role="status">
+            <div
+              key={insight.id}
+              style={{
+                ...toastStyle,
+                ...(hoveredToastId === insight.id ? toastHoverStyle : null),
+              }}
+              onMouseEnter={() => setHoveredToastId(insight.id)}
+              onMouseLeave={() => setHoveredToastId(null)}
+              role="status"
+            >
               <div style={toastHeaderStyle}>High-signal insight</div>
               <div style={toastBodyStyle}>
                 {insight.signal_summary ??
@@ -457,8 +488,15 @@ export default function IntelligenceRail({
               </div>
               <button
                 type="button"
-                style={toastButtonStyle}
+                style={{
+                  ...toastButtonStyle,
+                  ...(hoveredDismissId === insight.id
+                    ? toastButtonHoverStyle
+                    : null),
+                }}
                 onClick={() => handleDismiss(insight.id)}
+                onMouseEnter={() => setHoveredDismissId(insight.id)}
+                onMouseLeave={() => setHoveredDismissId(null)}
                 aria-label="Dismiss insight toast"
               >
                 Dismiss
